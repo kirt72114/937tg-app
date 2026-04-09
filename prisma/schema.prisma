@@ -1,0 +1,313 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ─────────────────────────────────────────────
+
+enum AdminRole {
+  super_admin
+  admin
+  editor
+}
+
+enum PageType {
+  static
+  dynamic
+  external_link
+}
+
+enum NavSection {
+  primary
+  more
+}
+
+enum AnnouncementPriority {
+  normal
+  important
+  urgent
+}
+
+enum WorkOrderPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum WorkOrderStatus {
+  submitted
+  in_progress
+  completed
+  cancelled
+}
+
+enum ScheduleType {
+  dfac
+  shuttle
+  other
+}
+
+enum RopeColor {
+  green
+  yellow
+  red
+}
+
+enum ProfileType {
+  leadership
+  mtl
+}
+
+// ─── Admin Users ───────────────────────────────────────
+
+model AdminUser {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String   @unique
+  name            String
+  role            AdminRole @default(editor)
+  supabaseAuthId  String   @unique @map("supabase_auth_id") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  pages              Page[]
+  announcements      Announcement[]
+  workOrderUpdates   WorkOrderUpdate[]
+  files              File[]
+
+  @@map("admin_users")
+}
+
+// ─── Pages (CMS) ──────────────────────────────────────
+
+model Page {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String
+  slug            String   @unique
+  content         Json?    @db.JsonB
+  metaDescription String?  @map("meta_description")
+  isPublished     Boolean  @default(false) @map("is_published")
+  pageType        PageType @default(static) @map("page_type")
+  externalUrl     String?  @map("external_url")
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdBy       String?  @map("created_by") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  creator         AdminUser?      @relation(fields: [createdBy], references: [id])
+  navigationItems NavigationItem[]
+
+  @@map("pages")
+}
+
+// ─── Navigation ───────────────────────────────────────
+
+model NavigationItem {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  label     String
+  href      String
+  icon      String?
+  parentId  String?    @map("parent_id") @db.Uuid
+  sortOrder Int        @default(0) @map("sort_order")
+  isVisible Boolean    @default(true) @map("is_visible")
+  section   NavSection @default(primary)
+  pageId    String?    @map("page_id") @db.Uuid
+
+  parent   NavigationItem?  @relation("NavHierarchy", fields: [parentId], references: [id])
+  children NavigationItem[] @relation("NavHierarchy")
+  page     Page?            @relation(fields: [pageId], references: [id])
+
+  @@map("navigation_items")
+}
+
+// ─── Announcements ────────────────────────────────────
+
+model Announcement {
+  id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  content     Json?                @db.JsonB
+  priority    AnnouncementPriority @default(normal)
+  isPinned    Boolean              @default(false) @map("is_pinned")
+  publishDate DateTime             @default(now()) @map("publish_date")
+  expireDate  DateTime?            @map("expire_date")
+  createdBy   String?              @map("created_by") @db.Uuid
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  creator AdminUser? @relation(fields: [createdBy], references: [id])
+
+  @@map("announcements")
+}
+
+// ─── Leadership Profiles ──────────────────────────────
+
+model LeadershipProfile {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  rank        String
+  title       String
+  unit        String      @default("937th Training Group")
+  bio         Json?       @db.JsonB
+  photoUrl    String?     @map("photo_url")
+  sortOrder   Int         @default(0) @map("sort_order")
+  profileType ProfileType @default(leadership) @map("profile_type")
+  isActive    Boolean     @default(true) @map("is_active")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  @@map("leadership_profiles")
+}
+
+// ─── Contacts (Phone Directory) ───────────────────────
+
+model Contact {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  phone       String
+  category    String
+  description String?
+  sortOrder   Int     @default(0) @map("sort_order")
+  isActive    Boolean @default(true) @map("is_active")
+
+  @@map("contacts")
+}
+
+// ─── Locations ────────────────────────────────────────
+
+model Location {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  address     String
+  description Json?    @db.JsonB
+  mapUrl      String?  @map("map_url")
+  latitude    Decimal? @db.Decimal(10, 7)
+  longitude   Decimal? @db.Decimal(10, 7)
+  category    String
+  sortOrder   Int      @default(0) @map("sort_order")
+
+  @@map("locations")
+}
+
+// ─── Work Orders ──────────────────────────────────────
+
+model WorkOrder {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referenceNumber String            @unique @map("reference_number")
+  submitterName   String            @map("submitter_name")
+  submitterEmail  String            @map("submitter_email")
+  submitterPhone  String?           @map("submitter_phone")
+  location        String
+  category        String
+  priority        WorkOrderPriority @default(medium)
+  description     String
+  status          WorkOrderStatus   @default(submitted)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  updates WorkOrderUpdate[]
+
+  @@map("work_orders")
+}
+
+model WorkOrderUpdate {
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workOrderId String          @map("work_order_id") @db.Uuid
+  status      WorkOrderStatus
+  notes       String?
+  updatedBy   String?         @map("updated_by") @db.Uuid
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  workOrder WorkOrder  @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  updater   AdminUser? @relation(fields: [updatedBy], references: [id])
+
+  @@map("work_order_updates")
+}
+
+// ─── Files ────────────────────────────────────────────
+
+model File {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename    String
+  storagePath String   @map("storage_path")
+  mimeType    String   @map("mime_type")
+  sizeBytes   BigInt   @map("size_bytes")
+  uploadedBy  String?  @map("uploaded_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  uploader AdminUser? @relation(fields: [uploadedBy], references: [id])
+
+  @@map("files")
+}
+
+// ─── Schedules ────────────────────────────────────────
+
+model Schedule {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title         String
+  scheduleType  ScheduleType @map("schedule_type")
+  content       Json         @db.JsonB
+  effectiveDate DateTime     @map("effective_date") @db.Date
+  isCurrent     Boolean      @default(true) @map("is_current")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  @@map("schedules")
+}
+
+// ─── Link Collections ─────────────────────────────────
+
+model LinkCollection {
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  slug        String @unique
+  description String?
+  sortOrder   Int    @default(0) @map("sort_order")
+
+  items LinkItem[]
+
+  @@map("link_collections")
+}
+
+model LinkItem {
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  collectionId String  @map("collection_id") @db.Uuid
+  title        String
+  url          String
+  description  String?
+  icon         String?
+  sortOrder    Int     @default(0) @map("sort_order")
+
+  collection LinkCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@map("link_items")
+}
+
+// ─── Rope Programs ────────────────────────────────────
+
+model RopeProgram {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ropeColor    RopeColor @map("rope_color")
+  title        String
+  description  Json?     @db.JsonB
+  requirements Json?     @db.JsonB
+  sortOrder    Int       @default(0) @map("sort_order")
+
+  @@map("rope_programs")
+}
+
+// ─── Page Views (Analytics) ───────────────────────────
+
+model PageView {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pagePath  String   @map("page_path")
+  userAgent String?  @map("user_agent")
+  referrer  String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([pagePath])
+  @@index([createdAt])
+  @@map("page_views")
+}
