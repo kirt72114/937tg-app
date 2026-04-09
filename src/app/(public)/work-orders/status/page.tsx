@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
+import { WorkOrderStatusLookup } from "./work-order-status-lookup";
 
 export const metadata: Metadata = {
   title: "Work Order Status",
@@ -11,14 +11,10 @@ export default function WorkOrderStatusPage() {
     <div>
       <PageHeader
         title="Work Order Status"
-        description="Track the status of your submitted work orders."
+        description="Enter your reference number to check the status of your work order."
       />
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <Card>
-          <CardContent className="p-6 text-center text-muted-foreground">
-            Content coming soon. This page is under development.
-          </CardContent>
-        </Card>
+        <WorkOrderStatusLookup />
       </div>
     </div>
   );

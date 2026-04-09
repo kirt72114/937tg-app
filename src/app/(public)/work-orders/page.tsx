@@ -1,24 +1,20 @@
 import { Metadata } from "next";
-import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
+import { WorkOrderForm } from "./work-order-form";
 
 export const metadata: Metadata = {
-  title: "Work Orders",
+  title: "Submit a Work Order",
 };
 
 export default function WorkOrdersPage() {
   return (
     <div>
       <PageHeader
-        title="Work Orders"
-        description="Submit and manage work orders."
+        title="Submit a Work Order"
+        description="Report maintenance issues in dormitories or facilities. You'll receive a reference number to track your request."
       />
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <Card>
-          <CardContent className="p-6 text-center text-muted-foreground">
-            Content coming soon. This page is under development.
-          </CardContent>
-        </Card>
+        <WorkOrderForm />
       </div>
     </div>
   );

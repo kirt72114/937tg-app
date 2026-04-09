@@ -1,6 +1,6 @@
 import { Metadata } from "next";
-import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
+import { PhoneDirectory } from "./phone-directory";
 
 export const metadata: Metadata = {
   title: "Important Phone Numbers",
@@ -11,14 +11,10 @@ export default function PhoneNumbersPage() {
     <div>
       <PageHeader
         title="Important Phone Numbers"
-        description="Contact directory for key offices and services."
+        description="Find contact information for key offices and services. Tap any number to call."
       />
       <div className="mx-auto max-w-7xl px-4 py-8">
-        <Card>
-          <CardContent className="p-6 text-center text-muted-foreground">
-            Content coming soon. This page is under development.
-          </CardContent>
-        </Card>
+        <PhoneDirectory />
       </div>
     </div>
   );
