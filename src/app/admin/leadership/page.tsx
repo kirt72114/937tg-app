@@ -4,16 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/admin/data-table";
 import { Plus, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getAllProfiles, deleteProfile } from "@/lib/actions/leadership";
 
-const mockLeaders = [
-  { id: "1", name: "Col. John Mitchell", rank: "Col.", title: "Group Commander", isActive: true },
-  { id: "2", name: "Lt Col. Sarah Chen", rank: "Lt Col.", title: "Vice Commander", isActive: true },
-  { id: "3", name: "CMSgt Robert Jackson", rank: "CMSgt", title: "Group Superintendent", isActive: true },
-  { id: "4", name: "Lt Col. David Rivera", rank: "Lt Col.", title: "Deputy Group Commander", isActive: true },
-  { id: "5", name: "CMSgt Angela Foster", rank: "CMSgt", title: "Command Chief", isActive: true },
-];
-
-type Leader = (typeof mockLeaders)[number];
+type Leader = {
+  id: string;
+  name: string;
+  rank: string;
+  title: string;
+  unit: string;
+  bio: unknown;
+  photoUrl: string | null;
+  sortOrder: number;
+  profileType: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 const columns = [
   {
@@ -45,6 +52,25 @@ const columns = [
 ];
 
 export default function AdminLeadershipPage() {
+  const [data, setData] = useState<Leader[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function loadData() {
+    const items = await getAllProfiles("leadership");
+    setData(items);
+    setLoading(false);
+  }
+
+  useEffect(() => { loadData(); }, []);
+
+  async function handleDelete(item: Leader) {
+    if (!confirm(`Delete "${item.name}"?`)) return;
+    await deleteProfile(item.id);
+    loadData();
+  }
+
+  if (loading) return <div className="p-6">Loading...</div>;
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -59,9 +85,9 @@ export default function AdminLeadershipPage() {
       </div>
       <DataTable
         columns={columns}
-        data={mockLeaders}
+        data={data}
         onEdit={(item) => alert(`Edit: ${item.name}`)}
-        onDelete={(item) => alert(`Delete: ${item.name}`)}
+        onDelete={handleDelete}
       />
     </div>
   );

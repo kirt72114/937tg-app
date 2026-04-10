@@ -4,19 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/admin/data-table";
 import { Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getAllProfiles, deleteProfile } from "@/lib/actions/leadership";
 
-const mockMtls = [
-  { id: "1", name: "TSgt Maria Santos", rank: "TSgt", title: "Lead MTL - Building 2841", isActive: true },
-  { id: "2", name: "TSgt James Williams", rank: "TSgt", title: "Floor MTL - Dorm A", isActive: true },
-  { id: "3", name: "SSgt Kevin Brown", rank: "SSgt", title: "Floor MTL - Dorm B", isActive: true },
-  { id: "4", name: "SSgt Ashley Davis", rank: "SSgt", title: "Floor MTL - Dorm C", isActive: true },
-  { id: "5", name: "TSgt Michael Chen", rank: "TSgt", title: "Lead MTL - Building 2840", isActive: true },
-  { id: "6", name: "SSgt Nicole Thompson", rank: "SSgt", title: "Floor MTL - Dorm D", isActive: true },
-  { id: "7", name: "TSgt David Kim", rank: "TSgt", title: "Weekend Duty MTL", isActive: true },
-  { id: "8", name: "SSgt Brandon Lee", rank: "SSgt", title: "Floor MTL - Dorm E", isActive: false },
-];
-
-type Mtl = (typeof mockMtls)[number];
+type Mtl = {
+  id: string;
+  name: string;
+  rank: string;
+  title: string;
+  unit: string;
+  bio: unknown;
+  photoUrl: string | null;
+  sortOrder: number;
+  profileType: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 const columns = [
   {
@@ -43,6 +47,25 @@ const columns = [
 ];
 
 export default function AdminMtlsPage() {
+  const [data, setData] = useState<Mtl[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function loadData() {
+    const items = await getAllProfiles("mtl");
+    setData(items);
+    setLoading(false);
+  }
+
+  useEffect(() => { loadData(); }, []);
+
+  async function handleDelete(item: Mtl) {
+    if (!confirm(`Delete "${item.name}"?`)) return;
+    await deleteProfile(item.id);
+    loadData();
+  }
+
+  if (loading) return <div className="p-6">Loading...</div>;
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -57,9 +80,9 @@ export default function AdminMtlsPage() {
       </div>
       <DataTable
         columns={columns}
-        data={mockMtls}
+        data={data}
         onEdit={(item) => alert(`Edit: ${item.name}`)}
-        onDelete={(item) => alert(`Delete: ${item.name}`)}
+        onDelete={handleDelete}
       />
     </div>
   );

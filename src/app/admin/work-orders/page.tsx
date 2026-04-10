@@ -3,66 +3,99 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/admin/data-table";
-import { ClipboardList, Eye } from "lucide-react";
+import { ClipboardList } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getAllWorkOrders } from "@/lib/actions/work-orders";
 
-const mockWorkOrders = [
-  { id: "1", referenceNumber: "WO-2026-00001", submitter: "SSgt Smith", location: "Building 2841", category: "Plumbing", priority: "Medium", status: "in_progress", createdAt: "Mar 15, 2026" },
-  { id: "2", referenceNumber: "WO-2026-00002", submitter: "A1C Johnson", location: "Building 2840", category: "Electrical", priority: "High", status: "submitted", createdAt: "Mar 20, 2026" },
-  { id: "3", referenceNumber: "WO-2026-00003", submitter: "SrA Williams", location: "Rocco DFAC", category: "HVAC", priority: "Low", status: "completed", createdAt: "Mar 10, 2026" },
-  { id: "4", referenceNumber: "WO-2026-00004", submitter: "TSgt Davis", location: "Fitness Center", category: "Structural", priority: "Urgent", status: "submitted", createdAt: "Apr 1, 2026" },
-];
-
-type WorkOrder = (typeof mockWorkOrders)[number];
-
-const statusMap = {
-  submitted: { label: "Submitted", variant: "default" as const },
-  in_progress: { label: "In Progress", variant: "warning" as const },
-  completed: { label: "Completed", variant: "success" as const },
-  cancelled: { label: "Cancelled", variant: "destructive" as const },
+type WorkOrder = {
+  id: string;
+  referenceNumber: string;
+  submitterName: string;
+  submitterEmail: string;
+  submitterPhone: string | null;
+  location: string;
+  category: string;
+  priority: string;
+  description: string;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+  _count: { updates: number };
 };
 
-const priorityMap = {
-  Low: "secondary" as const,
-  Medium: "outline" as const,
-  High: "warning" as const,
-  Urgent: "destructive" as const,
+const statusMap: Record<string, { label: string; variant: "default" | "warning" | "success" | "destructive" }> = {
+  submitted: { label: "Submitted", variant: "default" },
+  in_progress: { label: "In Progress", variant: "warning" },
+  completed: { label: "Completed", variant: "success" },
+  cancelled: { label: "Cancelled", variant: "destructive" },
+};
+
+const priorityMap: Record<string, "secondary" | "outline" | "warning" | "destructive"> = {
+  low: "secondary",
+  medium: "outline",
+  high: "warning",
+  urgent: "destructive",
 };
 
 const columns = [
   {
     key: "referenceNumber",
     header: "Reference",
-    render: (item: WorkOrder) => <span className="font-mono text-xs font-medium">{item.referenceNumber}</span>,
+    render: (item: WorkOrder) => (
+      <Link href={`/admin/work-orders/${item.id}`} className="font-mono text-xs font-medium text-military-blue hover:underline">
+        {item.referenceNumber}
+      </Link>
+    ),
   },
-  { key: "submitter", header: "Submitter" },
+  { key: "submitterName", header: "Submitter" },
   { key: "location", header: "Location" },
   { key: "category", header: "Category", className: "w-24" },
   {
     key: "priority",
     header: "Priority",
-    render: (item: WorkOrder) => <Badge variant={priorityMap[item.priority as keyof typeof priorityMap]}>{item.priority}</Badge>,
+    render: (item: WorkOrder) => <Badge variant={priorityMap[item.priority] ?? "outline"}>{item.priority}</Badge>,
     className: "w-24",
   },
   {
     key: "status",
     header: "Status",
     render: (item: WorkOrder) => {
-      const s = statusMap[item.status as keyof typeof statusMap];
+      const s = statusMap[item.status] ?? { label: item.status, variant: "default" as const };
       return <Badge variant={s.variant}>{s.label}</Badge>;
     },
     className: "w-28",
   },
-  { key: "createdAt", header: "Date", className: "w-28" },
+  {
+    key: "createdAt",
+    header: "Date",
+    render: (item: WorkOrder) => (
+      <span className="text-sm text-muted-foreground">
+        {new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+      </span>
+    ),
+    className: "w-28",
+  },
 ];
 
 export default function AdminWorkOrdersPage() {
+  const [data, setData] = useState<WorkOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getAllWorkOrders().then((items) => {
+      setData(items as WorkOrder[]);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) return <div className="p-6">Loading...</div>;
+
   const stats = {
-    total: mockWorkOrders.length,
-    submitted: mockWorkOrders.filter((w) => w.status === "submitted").length,
-    inProgress: mockWorkOrders.filter((w) => w.status === "in_progress").length,
-    completed: mockWorkOrders.filter((w) => w.status === "completed").length,
+    total: data.length,
+    submitted: data.filter((w) => w.status === "submitted").length,
+    inProgress: data.filter((w) => w.status === "in_progress").length,
+    completed: data.filter((w) => w.status === "completed").length,
   };
 
   return (
@@ -90,8 +123,10 @@ export default function AdminWorkOrdersPage() {
 
       <DataTable
         columns={columns}
-        data={mockWorkOrders}
-        onEdit={(item) => alert(`View details: ${item.referenceNumber}`)}
+        data={data}
+        onEdit={(item) => {
+          window.location.href = `/admin/work-orders/${item.id}`;
+        }}
       />
     </div>
   );

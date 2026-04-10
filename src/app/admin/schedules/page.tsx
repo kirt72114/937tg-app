@@ -4,20 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/admin/data-table";
 import { Plus, Calendar } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getAllSchedules, deleteSchedule } from "@/lib/actions/schedules";
 
-const mockSchedules = [
-  { id: "1", title: "Rocco DFAC - Weekday Hours", scheduleType: "dfac", effectiveDate: "Mar 1, 2026", isCurrent: true },
-  { id: "2", title: "Rocco DFAC - Weekend/Holiday Hours", scheduleType: "dfac", effectiveDate: "Mar 1, 2026", isCurrent: true },
-  { id: "3", title: "JBSA Shuttle Route A", scheduleType: "shuttle", effectiveDate: "Jan 15, 2026", isCurrent: true },
-  { id: "4", title: "Holiday Schedule - Christmas Block Leave", scheduleType: "other", effectiveDate: "Dec 20, 2025", isCurrent: false },
-];
+type Schedule = {
+  id: string;
+  title: string;
+  scheduleType: string;
+  content: unknown;
+  effectiveDate: Date;
+  isCurrent: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
-type Schedule = (typeof mockSchedules)[number];
-
-const typeMap = {
-  dfac: { label: "DFAC", variant: "default" as const },
-  shuttle: { label: "Shuttle", variant: "warning" as const },
-  other: { label: "Other", variant: "secondary" as const },
+const typeMap: Record<string, { label: string; variant: "default" | "warning" | "secondary" }> = {
+  dfac: { label: "DFAC", variant: "default" },
+  shuttle: { label: "Shuttle", variant: "warning" },
+  other: { label: "Other", variant: "secondary" },
 };
 
 const columns = [
@@ -35,12 +39,21 @@ const columns = [
     key: "scheduleType",
     header: "Type",
     render: (item: Schedule) => {
-      const t = typeMap[item.scheduleType as keyof typeof typeMap];
+      const t = typeMap[item.scheduleType] ?? { label: item.scheduleType, variant: "secondary" as const };
       return <Badge variant={t.variant}>{t.label}</Badge>;
     },
     className: "w-24",
   },
-  { key: "effectiveDate", header: "Effective Date", className: "w-36" },
+  {
+    key: "effectiveDate",
+    header: "Effective Date",
+    render: (item: Schedule) => (
+      <span className="text-sm">
+        {new Date(item.effectiveDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+      </span>
+    ),
+    className: "w-36",
+  },
   {
     key: "isCurrent",
     header: "Status",
@@ -54,6 +67,25 @@ const columns = [
 ];
 
 export default function AdminSchedulesPage() {
+  const [data, setData] = useState<Schedule[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function loadData() {
+    const items = await getAllSchedules();
+    setData(items as Schedule[]);
+    setLoading(false);
+  }
+
+  useEffect(() => { loadData(); }, []);
+
+  async function handleDelete(item: Schedule) {
+    if (!confirm(`Delete "${item.title}"?`)) return;
+    await deleteSchedule(item.id);
+    loadData();
+  }
+
+  if (loading) return <div className="p-6">Loading...</div>;
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -65,9 +97,9 @@ export default function AdminSchedulesPage() {
       </div>
       <DataTable
         columns={columns}
-        data={mockSchedules}
+        data={data}
         onEdit={(item) => alert(`Edit: ${item.title}`)}
-        onDelete={(item) => alert(`Delete: ${item.title}`)}
+        onDelete={handleDelete}
       />
     </div>
   );

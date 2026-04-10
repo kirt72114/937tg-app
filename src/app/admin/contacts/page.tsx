@@ -5,20 +5,18 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/admin/data-table";
 import { Plus, Search, Phone } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getAllContacts, deleteContact } from "@/lib/actions/contacts";
 
-const mockContacts = [
-  { id: "1", name: "937 TG Orderly Room", phone: "210-808-3100", category: "937 TG", isActive: true },
-  { id: "2", name: "937 TG First Sergeant", phone: "210-808-3101", category: "937 TG", isActive: true },
-  { id: "3", name: "Base Emergency", phone: "210-221-1211", category: "Emergency", isActive: true },
-  { id: "4", name: "BAMC Operator", phone: "210-916-9900", category: "Medical", isActive: true },
-  { id: "5", name: "Chapel", phone: "210-221-9004", category: "Support Services", isActive: true },
-  { id: "6", name: "Finance Office", phone: "210-808-3400", category: "Support Services", isActive: true },
-  { id: "7", name: "Work Orders / CE", phone: "210-808-3500", category: "Facilities", isActive: true },
-  { id: "8", name: "Military OneSource", phone: "800-342-9647", category: "Support Services", isActive: true },
-];
-
-type Contact = (typeof mockContacts)[number];
+type Contact = {
+  id: string;
+  name: string;
+  phone: string;
+  category: string;
+  description: string | null;
+  sortOrder: number;
+  isActive: boolean;
+};
 
 const categoryColors: Record<string, string> = {
   Emergency: "bg-red-100 text-red-700",
@@ -62,8 +60,27 @@ const columns = [
 ];
 
 export default function AdminContactsPage() {
+  const [data, setData] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const filtered = mockContacts.filter((c) =>
+
+  async function loadData() {
+    const items = await getAllContacts();
+    setData(items);
+    setLoading(false);
+  }
+
+  useEffect(() => { loadData(); }, []);
+
+  async function handleDelete(item: Contact) {
+    if (!confirm(`Delete "${item.name}"?`)) return;
+    await deleteContact(item.id);
+    loadData();
+  }
+
+  if (loading) return <div className="p-6">Loading...</div>;
+
+  const filtered = data.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search)
   );
 
@@ -83,7 +100,7 @@ export default function AdminContactsPage() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input placeholder="Search contacts..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
       </div>
-      <DataTable columns={columns} data={filtered} onEdit={(item) => alert(`Edit: ${item.name}`)} onDelete={(item) => alert(`Delete: ${item.name}`)} />
+      <DataTable columns={columns} data={filtered} onEdit={(item) => alert(`Edit: ${item.name}`)} onDelete={handleDelete} />
     </div>
   );
 }

@@ -6,15 +6,26 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/admin/data-table";
 import { Plus, Megaphone, Pin } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getAllAnnouncements, deleteAnnouncement } from "@/lib/actions/announcements";
 
-const mockAnnouncements = [
-  { id: "1", title: "Welcome to the 937th Training Group", priority: "normal", isPinned: true, publishDate: "Apr 8, 2026", expireDate: "—" },
-  { id: "2", title: "DFAC Hours Update", priority: "important", isPinned: false, publishDate: "Apr 5, 2026", expireDate: "Apr 30, 2026" },
-  { id: "3", title: "Base-Wide Safety Stand Down", priority: "urgent", isPinned: false, publishDate: "Apr 1, 2026", expireDate: "Apr 15, 2026" },
-];
+type Announcement = {
+  id: string;
+  title: string;
+  content: unknown;
+  priority: string;
+  isPinned: boolean;
+  publishDate: Date;
+  expireDate: Date | null;
+  createdBy: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
-type Announcement = (typeof mockAnnouncements)[number];
+function formatDate(date: Date | null): string {
+  if (!date) return "\u2014";
+  return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
 
 const columns = [
   {
@@ -36,13 +47,41 @@ const columns = [
     },
     className: "w-28",
   },
-  { key: "publishDate", header: "Published", className: "w-32" },
-  { key: "expireDate", header: "Expires", className: "w-32" },
+  {
+    key: "publishDate",
+    header: "Published",
+    render: (item: Announcement) => formatDate(item.publishDate),
+    className: "w-32",
+  },
+  {
+    key: "expireDate",
+    header: "Expires",
+    render: (item: Announcement) => formatDate(item.expireDate),
+    className: "w-32",
+  },
 ];
 
 export default function AdminAnnouncementsPage() {
+  const [data, setData] = useState<Announcement[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
+
+  async function loadData() {
+    const items = await getAllAnnouncements();
+    setData(items);
+    setLoading(false);
+  }
+
+  useEffect(() => { loadData(); }, []);
+
+  async function handleDelete(item: Announcement) {
+    if (!confirm(`Delete "${item.title}"?`)) return;
+    await deleteAnnouncement(item.id);
+    loadData();
+  }
+
+  if (loading) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="p-6">
@@ -85,9 +124,9 @@ export default function AdminAnnouncementsPage() {
 
       <DataTable
         columns={columns}
-        data={mockAnnouncements}
+        data={data}
         onEdit={(item) => alert(`Edit: ${item.title}`)}
-        onDelete={(item) => alert(`Delete: ${item.title}`)}
+        onDelete={handleDelete}
       />
     </div>
   );
