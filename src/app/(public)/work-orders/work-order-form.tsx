@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CheckCircle2, ClipboardList } from "lucide-react";
+import { submitWorkOrder } from "@/lib/actions/work-orders";
 
 const workOrderSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -55,10 +56,22 @@ export function WorkOrderForm() {
     resolver: zodResolver(workOrderSchema),
   });
 
-  function onSubmit(data: WorkOrderFormData) {
-    const ref = `WO-2026-${String(Math.floor(Math.random() * 99999)).padStart(5, "0")}`;
-    setRefNumber(ref);
-    setSubmitted(true);
+  async function onSubmit(data: WorkOrderFormData) {
+    try {
+      const result = await submitWorkOrder({
+        submitterName: data.name,
+        submitterEmail: data.email,
+        submitterPhone: data.phone,
+        location: data.location,
+        category: data.category,
+        priority: data.priority.toLowerCase() as "low" | "medium" | "high" | "urgent",
+        description: data.description,
+      });
+      setRefNumber(result.referenceNumber);
+      setSubmitted(true);
+    } catch {
+      alert("Failed to submit work order. Please try again.");
+    }
   }
 
   if (submitted) {

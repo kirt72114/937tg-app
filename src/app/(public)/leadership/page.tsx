@@ -3,50 +3,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
 import { ProfileCard } from "@/components/shared/profile-card";
 import { Shield } from "lucide-react";
+import { getLeadershipProfiles } from "@/lib/actions/leadership";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Meet Your Leadership",
 };
 
-const leaders = [
-  {
-    name: "John Mitchell",
-    rank: "Col.",
-    title: "Group Commander",
-    unit: "937th Training Group",
-    bio: "As Group Commander, Col. Mitchell leads over 1,000 military and civilian personnel responsible for training the Air Force's next generation of medical professionals. He oversees all training operations, readiness, and student welfare.",
-  },
-  {
-    name: "Sarah Chen",
-    rank: "Lt Col.",
-    title: "Vice Commander",
-    unit: "937th Training Group",
-    bio: "Lt Col. Chen serves as the principal deputy to the Group Commander, managing day-to-day operations and ensuring training excellence across all squadrons within the 937th Training Group.",
-  },
-  {
-    name: "Robert Jackson",
-    rank: "CMSgt",
-    title: "Group Superintendent",
-    unit: "937th Training Group",
-    bio: "As the senior enlisted leader, CMSgt Jackson advises the Commander on all enlisted matters, morale, welfare, and professional development of over 800 enlisted personnel and Airmen in Training.",
-  },
-  {
-    name: "David Rivera",
-    rank: "Lt Col.",
-    title: "Deputy Group Commander",
-    unit: "937th Training Group",
-    bio: "Lt Col. Rivera supports the Commander and Vice Commander in executing the group's mission, with focus on resource management, strategic planning, and interagency coordination at METC.",
-  },
-  {
-    name: "Angela Foster",
-    rank: "CMSgt",
-    title: "Command Chief",
-    unit: "937th Training Group",
-    bio: "CMSgt Foster serves as the principal advisor to the Commander on all issues regarding health, welfare, morale, and professional development of the enlisted force assigned to the 937 TG.",
-  },
-];
+export default async function LeadershipPage() {
+  const leaders = await getLeadershipProfiles();
 
-export default function LeadershipPage() {
   return (
     <div>
       <PageHeader
@@ -73,7 +40,15 @@ export default function LeadershipPage() {
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {leaders.map((leader) => (
-            <ProfileCard key={leader.name} {...leader} />
+            <ProfileCard
+              key={leader.id}
+              name={leader.name}
+              rank={leader.rank}
+              title={leader.title}
+              unit={leader.unit}
+              bio={typeof leader.bio === "object" && leader.bio !== null && "html" in leader.bio ? String(leader.bio.html) : undefined}
+              photoUrl={leader.photoUrl ?? undefined}
+            />
           ))}
         </div>
       </div>

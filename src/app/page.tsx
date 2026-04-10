@@ -18,6 +18,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AnnouncementCard } from "@/components/shared/announcement-card";
 import { SITE_CONFIG } from "@/lib/constants";
+import { getActiveAnnouncements } from "@/lib/actions/announcements";
+
+export const dynamic = "force-dynamic";
 
 const quickLinks = [
   {
@@ -76,19 +79,17 @@ const resourceLinks = [
   { title: "Leadership Programs", href: "/leadership-programs", icon: Award },
 ];
 
-// Placeholder announcements (will come from DB later)
-const announcements = [
-  {
-    title: "Welcome to the 937th Training Group",
-    content:
-      "This is the official digital hub for the 937th Training Group. Find resources, contacts, and important information all in one place.",
-    priority: "normal" as const,
-    date: "April 2026",
-    isPinned: true,
-  },
-];
-
-export default function HomePage() {
+export default async function HomePage() {
+  const dbAnnouncements = await getActiveAnnouncements();
+  const announcements = dbAnnouncements.map((a) => ({
+    title: a.title,
+    content: typeof a.content === "object" && a.content !== null && "html" in a.content
+      ? String(a.content.html)
+      : "",
+    priority: a.priority as "normal" | "important" | "urgent",
+    date: a.publishDate.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+    isPinned: a.isPinned,
+  }));
   return (
     <div>
       {/* Hero Section */}

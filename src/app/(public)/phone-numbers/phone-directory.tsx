@@ -7,40 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Phone, Search } from "lucide-react";
 
 type Contact = {
+  id: string;
   name: string;
   phone: string;
   category: string;
 };
-
-const contacts: Contact[] = [
-  // Emergency
-  { name: "Emergency (911)", phone: "911", category: "Emergency" },
-  { name: "Base Emergency", phone: "210-221-1211", category: "Emergency" },
-  { name: "Mental Health Crisis Line", phone: "988", category: "Emergency" },
-  { name: "Fire Department", phone: "210-221-2222", category: "Emergency" },
-  // 937 TG
-  { name: "937 TG Orderly Room", phone: "210-808-3100", category: "937 TG" },
-  { name: "937 TG First Sergeant", phone: "210-808-3101", category: "937 TG" },
-  { name: "Commander's Action Line", phone: "210-808-3102", category: "937 TG" },
-  { name: "Training Manager", phone: "210-808-3103", category: "937 TG" },
-  // Medical
-  { name: "BAMC Operator", phone: "210-916-9900", category: "Medical" },
-  { name: "TRICARE Appointments", phone: "800-874-2273", category: "Medical" },
-  { name: "METC Sick Call", phone: "210-808-3200", category: "Medical" },
-  { name: "Nurse Advice Line", phone: "800-874-2273", category: "Medical" },
-  // Support Services
-  { name: "Chapel", phone: "210-221-9004", category: "Support Services" },
-  { name: "Legal / ADC", phone: "210-808-3300", category: "Support Services" },
-  { name: "Finance Office", phone: "210-808-3400", category: "Support Services" },
-  { name: "Military OneSource", phone: "800-342-9647", category: "Support Services" },
-  // Facilities
-  { name: "Work Orders / CE", phone: "210-808-3500", category: "Facilities" },
-  { name: "Barracks Management", phone: "210-808-3501", category: "Facilities" },
-  { name: "Dining Facility (DFAC)", phone: "210-808-3502", category: "Facilities" },
-  // Transportation
-  { name: "Shuttle Information", phone: "210-808-3600", category: "Transportation" },
-  { name: "POV Registration", phone: "210-808-3601", category: "Transportation" },
-];
 
 const categoryColors: Record<string, string> = {
   Emergency: "bg-red-100 text-red-700",
@@ -48,10 +19,11 @@ const categoryColors: Record<string, string> = {
   Medical: "bg-green-100 text-green-700",
   "Support Services": "bg-purple-100 text-purple-700",
   Facilities: "bg-amber-100 text-amber-700",
+  Recreation: "bg-teal-100 text-teal-700",
   Transportation: "bg-teal-100 text-teal-700",
 };
 
-export function PhoneDirectory() {
+export function PhoneDirectory({ contacts }: { contacts: Contact[] }) {
   const [search, setSearch] = useState("");
 
   const filtered = contacts.filter(
@@ -97,7 +69,7 @@ export function PhoneDirectory() {
                 .filter((c) => c.category === category)
                 .map((contact) => (
                   <div
-                    key={contact.name + contact.phone}
+                    key={contact.id}
                     className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
                   >
                     <span className="text-sm font-medium">{contact.name}</span>

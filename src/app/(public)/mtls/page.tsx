@@ -3,25 +3,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
 import { ProfileCard } from "@/components/shared/profile-card";
 import { UserCheck, Target } from "lucide-react";
+import { getMtlProfiles } from "@/lib/actions/leadership";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Meet Your MTLs",
 };
 
-const mtls = [
-  { name: "Maria Santos", rank: "TSgt", title: "Lead MTL - Building 2841" },
-  { name: "James Williams", rank: "TSgt", title: "Floor MTL - Dorm A" },
-  { name: "Kevin Brown", rank: "SSgt", title: "Floor MTL - Dorm B" },
-  { name: "Ashley Davis", rank: "SSgt", title: "Floor MTL - Dorm C" },
-  { name: "Michael Chen", rank: "TSgt", title: "Lead MTL - Building 2840" },
-  { name: "Nicole Thompson", rank: "SSgt", title: "Floor MTL - Dorm D" },
-  { name: "David Kim", rank: "TSgt", title: "Weekend Duty MTL" },
-  { name: "Brandon Lee", rank: "SSgt", title: "Floor MTL - Dorm E" },
-  { name: "Rachel Martinez", rank: "SSgt", title: "Floor MTL - Dorm F" },
-  { name: "Christopher Harris", rank: "TSgt", title: "Standards & Evaluations MTL" },
-];
+export default async function MtlsPage() {
+  const mtls = await getMtlProfiles();
 
-export default function MtlsPage() {
   return (
     <div>
       <PageHeader
@@ -66,9 +58,12 @@ export default function MtlsPage() {
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
           {mtls.map((mtl) => (
             <ProfileCard
-              key={mtl.name}
-              {...mtl}
-              unit="937th Training Group"
+              key={mtl.id}
+              name={mtl.name}
+              rank={mtl.rank}
+              title={mtl.title}
+              unit={mtl.unit}
+              photoUrl={mtl.photoUrl ?? undefined}
             />
           ))}
         </div>
