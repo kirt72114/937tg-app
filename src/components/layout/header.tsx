@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import {
   Home,
@@ -78,10 +79,14 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-military-navy text-white">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         {/* Logo / Brand */}
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-military-gold font-bold text-military-navy text-lg">
-            937
-          </div>
+        <Link href="/" className="flex items-center gap-2.5">
+          <Image
+            src="/images/937Logo.png"
+            alt="937 TG"
+            width={40}
+            height={40}
+            className="h-9 w-9 object-contain"
+          />
           <div className="hidden sm:block">
             <div className="text-sm font-bold leading-tight">
               {SITE_CONFIG.name}
@@ -163,9 +168,13 @@ export function Header() {
           <SheetContent side="left" className="w-80 bg-military-navy text-white border-military-blue p-0">
             <SheetHeader className="p-6 pb-4">
               <SheetTitle className="text-white flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-military-gold font-bold text-military-navy text-lg">
-                  937
-                </div>
+                <Image
+                  src="/images/937Logo.png"
+                  alt="937 TG"
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 object-contain"
+                />
                 <div>
                   <div className="text-sm font-bold">{SITE_CONFIG.shortName}</div>
                   <div className="text-xs text-gray-300 font-normal">
