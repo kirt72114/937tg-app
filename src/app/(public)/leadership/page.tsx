@@ -133,7 +133,7 @@ const SQUADRONS = [
         photo: "/images/leadership/maj-laco-rubert.jpg",
       },
       {
-        name: "Patricia Lazano",
+        name: "Fabrizio Lamarca",
         rank: "CMSgt",
         title: "Senior Enlisted Leader",
         photo: null,
