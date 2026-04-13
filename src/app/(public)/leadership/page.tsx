@@ -55,7 +55,7 @@ const SQUADRONS = [
       },
       {
         name: "Justin Rhodes",
-        rank: "MSgt",
+        rank: "MSG",
         title: "Senior Enlisted Leader",
         photo: "/images/leadership/msg-rhodes-justin.jpg",
       },
