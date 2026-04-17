@@ -168,7 +168,7 @@ export default async function HomePage() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="flex-1 md:flex-none border-white/30 text-white hover:bg-white/10 text-sm"
+                className="flex-1 md:flex-none border-white text-white hover:bg-white/20 text-sm"
               >
                 <Link href="/phone-numbers">Phone Directory</Link>
               </Button>
