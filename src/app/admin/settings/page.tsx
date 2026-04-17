@@ -3,39 +3,78 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Save } from "lucide-react";
-import { useState } from "react";
+import { Save, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getAllSettings, saveSettings } from "@/lib/actions/settings";
 
 const textareaClasses =
   "flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y min-h-[80px]";
 
 export default function AdminSettingsPage() {
-  const [siteName, setSiteName] = useState("937th Training Group");
-  const [description, setDescription] = useState(
-    "Official website of the 937th Training Group, JBSA-Fort Sam Houston"
-  );
-  const [mission, setMission] = useState(
-    "Together we develop Warrior Medics by providing comprehensive medical education and readiness training."
-  );
-  const [vision, setVision] = useState(
-    "Premier Medics: Agile, Empowered and Innovative"
-  );
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const [siteName, setSiteName] = useState("");
+  const [description, setDescription] = useState("");
+  const [mission, setMission] = useState("");
+  const [vision, setVision] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#1a3a6b");
   const [accentColor, setAccentColor] = useState("#c5a04e");
-  const [footerText, setFooterText] = useState(
-    "937th Training Group | JBSA-Fort Sam Houston, TX | United States Air Force"
-  );
+  const [footerText, setFooterText] = useState("");
+
+  useEffect(() => {
+    async function load() {
+      const settings = await getAllSettings();
+      setSiteName(settings.siteName || "");
+      setDescription(settings.siteDescription || "");
+      setMission(settings.mission || "");
+      setVision(settings.vision || "");
+      setPrimaryColor(settings.primaryColor || "#1a3a6b");
+      setAccentColor(settings.accentColor || "#c5a04e");
+      setFooterText(settings.footerText || "");
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    setSaved(false);
+    try {
+      await saveSettings({
+        siteName,
+        siteDescription: description,
+        mission,
+        vision,
+        primaryColor,
+        accentColor,
+        footerText,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-sm text-muted-foreground">Configure site-wide settings and appearance.</p>
+          <p className="text-sm text-muted-foreground">
+            Configure site-wide settings and appearance.
+          </p>
         </div>
-        <Button onClick={() => alert("Settings saved!")}>
-          <Save className="h-4 w-4 mr-2" />
-          Save Settings
+        <Button onClick={handleSave} disabled={saving}>
+          {saved ? (
+            <><Check className="h-4 w-4 mr-2" />Saved!</>
+          ) : (
+            <><Save className="h-4 w-4 mr-2" />{saving ? "Saving..." : "Save Settings"}</>
+          )}
         </Button>
       </div>
 
@@ -47,7 +86,10 @@ export default function AdminSettingsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Site Name</label>
-              <Input value={siteName} onChange={(e) => setSiteName(e.target.value)} />
+              <Input
+                value={siteName}
+                onChange={(e) => setSiteName(e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Description</label>
@@ -69,7 +111,10 @@ export default function AdminSettingsPage() {
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Vision Statement</label>
-              <Input value={vision} onChange={(e) => setVision(e.target.value)} />
+              <Input
+                value={vision}
+                onChange={(e) => setVision(e.target.value)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -89,7 +134,11 @@ export default function AdminSettingsPage() {
                     onChange={(e) => setPrimaryColor(e.target.value)}
                     className="h-10 w-10 rounded border border-input cursor-pointer"
                   />
-                  <Input value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="font-mono" />
+                  <Input
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="font-mono"
+                  />
                 </div>
               </div>
               <div className="space-y-1.5">
@@ -101,7 +150,11 @@ export default function AdminSettingsPage() {
                     onChange={(e) => setAccentColor(e.target.value)}
                     className="h-10 w-10 rounded border border-input cursor-pointer"
                   />
-                  <Input value={accentColor} onChange={(e) => setAccentColor(e.target.value)} className="font-mono" />
+                  <Input
+                    value={accentColor}
+                    onChange={(e) => setAccentColor(e.target.value)}
+                    className="font-mono"
+                  />
                 </div>
               </div>
             </div>

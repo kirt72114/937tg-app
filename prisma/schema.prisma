@@ -298,6 +298,16 @@ model RopeProgram {
   @@map("rope_programs")
 }
 
+// ─── Site Settings ────────────────────────────────────
+
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
 // ─── Page Views (Analytics) ───────────────────────────
 
 model PageView {
