@@ -4,6 +4,8 @@ import { SITE_CONFIG } from "@/lib/constants";
 export function Footer({ settings }: { settings?: Record<string, string> }) {
   const siteName = settings?.siteName || SITE_CONFIG.name;
   const mission = settings?.mission || SITE_CONFIG.mission;
+  const branch = settings?.branch || SITE_CONFIG.branch;
+  const location = settings?.location || SITE_CONFIG.location;
   const footerText = settings?.footerText;
 
   return (
@@ -21,7 +23,7 @@ export function Footer({ settings }: { settings?: Record<string, string> }) {
                   {siteName}
                 </div>
                 <div className="text-xs text-gray-400">
-                  {SITE_CONFIG.location}
+                  {location}
                 </div>
               </div>
             </div>
@@ -86,7 +88,7 @@ export function Footer({ settings }: { settings?: Record<string, string> }) {
             &copy; {new Date().getFullYear()} {siteName}. All rights reserved.
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            {footerText || `${SITE_CONFIG.branch} \u2022 ${SITE_CONFIG.location}`}
+            {footerText || `${branch} \u2022 ${location}`}
           </p>
         </div>
       </div>

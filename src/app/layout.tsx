@@ -11,7 +11,7 @@ import "./globals.css";
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getAllSettings();
   const name = settings.siteName || SITE_CONFIG.name;
-  const shortName = SITE_CONFIG.shortName;
+  const shortName = settings.shortName || SITE_CONFIG.shortName;
   return {
     title: {
       default: name,
@@ -28,7 +28,6 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0f2444",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -61,11 +60,14 @@ export default async function RootLayout({
 
   const primary = settings.primaryColor || "#1a3a6b";
   const accent = settings.accentColor || "#c5a04e";
-  const themeOverride = `:root{--color-military-blue:${primary};--color-military-gold:${accent};--primary:${primary};--accent:${accent};--ring:${primary};--sidebar-primary:${accent};--sidebar-accent:${primary};--sidebar-ring:${accent};}`;
+  const navy = settings.navyColor || "#0f2444";
+  const light = settings.lightColor || "#f0f4f8";
+  const themeOverride = `:root{--color-military-blue:${primary};--color-military-gold:${accent};--color-military-navy:${navy};--color-military-light:${light};--primary:${primary};--accent:${accent};--background:${light};--ring:${primary};--sidebar:${navy};--sidebar-primary:${accent};--sidebar-accent:${primary};--sidebar-ring:${accent};}`;
 
   return (
     <html lang="en">
       <head>
+        <meta name="theme-color" content={navy} />
         <style dangerouslySetInnerHTML={{ __html: themeOverride }} />
       </head>
       <body className="min-h-screen flex flex-col antialiased">

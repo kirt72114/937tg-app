@@ -126,7 +126,7 @@ export function Header({
               {siteName}
             </div>
             <div className="text-xs text-gray-300">
-              {SITE_CONFIG.branch}
+              {settings?.branch || SITE_CONFIG.branch}
             </div>
           </div>
         </Link>
@@ -210,9 +210,9 @@ export function Header({
                   className="h-10 w-10 object-contain"
                 />
                 <div>
-                  <div className="text-sm font-bold">{SITE_CONFIG.shortName}</div>
+                  <div className="text-sm font-bold">{settings?.shortName || SITE_CONFIG.shortName}</div>
                   <div className="text-xs text-gray-300 font-normal">
-                    {SITE_CONFIG.branch}
+                    {settings?.branch || SITE_CONFIG.branch}
                   </div>
                 </div>
               </SheetTitle>

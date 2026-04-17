@@ -5,12 +5,17 @@ import { revalidatePath } from "next/cache";
 
 const DEFAULT_SETTINGS: Record<string, string> = {
   siteName: "937th Training Group",
+  shortName: "937 TG",
+  branch: "United States Air Force",
+  location: "JBSA-Fort Sam Houston, TX",
   siteDescription: "Official website of the 937th Training Group, JBSA-Fort Sam Houston",
   mission: "Together we develop Warrior Medics by providing comprehensive medical education and readiness training.",
   vision: "Premier Medics: Agile, Empowered and Innovative",
   primaryColor: "#1a3a6b",
   accentColor: "#c5a04e",
-  footerText: "937th Training Group | JBSA-Fort Sam Houston, TX | United States Air Force",
+  navyColor: "#0f2444",
+  lightColor: "#f0f4f8",
+  footerText: "",
 };
 
 export async function getAllSettings(): Promise<Record<string, string>> {
