@@ -17,6 +17,20 @@ export async function getCollectionWithItems(id: string) {
   });
 }
 
+export async function getCollectionBySlug(slug: string) {
+  return prisma.linkCollection.findUnique({
+    where: { slug },
+    include: { items: { orderBy: { sortOrder: "asc" } } },
+  });
+}
+
+export async function getAllCollectionSlugs() {
+  return prisma.linkCollection.findMany({
+    orderBy: { sortOrder: "asc" },
+    select: { slug: true },
+  });
+}
+
 export async function createCollection(data: {
   title: string;
   slug: string;
