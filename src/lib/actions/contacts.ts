@@ -53,3 +53,34 @@ export async function deleteContact(id: string) {
   revalidatePath("/admin/contacts");
   revalidatePath("/phone-numbers");
 }
+
+export async function reorderContact(id: string, direction: "up" | "down") {
+  const current = await prisma.contact.findUnique({ where: { id } });
+  if (!current) return;
+
+  const neighbor = await prisma.contact.findFirst({
+    where: {
+      sortOrder:
+        direction === "up"
+          ? { lt: current.sortOrder }
+          : { gt: current.sortOrder },
+    },
+    orderBy: { sortOrder: direction === "up" ? "desc" : "asc" },
+  });
+
+  if (!neighbor) return;
+
+  await prisma.$transaction([
+    prisma.contact.update({
+      where: { id: current.id },
+      data: { sortOrder: neighbor.sortOrder },
+    }),
+    prisma.contact.update({
+      where: { id: neighbor.id },
+      data: { sortOrder: current.sortOrder },
+    }),
+  ]);
+
+  revalidatePath("/admin/contacts");
+  revalidatePath("/phone-numbers");
+}

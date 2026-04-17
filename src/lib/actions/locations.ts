@@ -49,3 +49,34 @@ export async function deleteLocation(id: string) {
   revalidatePath("/admin/locations");
   revalidatePath("/locations");
 }
+
+export async function reorderLocation(id: string, direction: "up" | "down") {
+  const current = await prisma.location.findUnique({ where: { id } });
+  if (!current) return;
+
+  const neighbor = await prisma.location.findFirst({
+    where: {
+      sortOrder:
+        direction === "up"
+          ? { lt: current.sortOrder }
+          : { gt: current.sortOrder },
+    },
+    orderBy: { sortOrder: direction === "up" ? "desc" : "asc" },
+  });
+
+  if (!neighbor) return;
+
+  await prisma.$transaction([
+    prisma.location.update({
+      where: { id: current.id },
+      data: { sortOrder: neighbor.sortOrder },
+    }),
+    prisma.location.update({
+      where: { id: neighbor.id },
+      data: { sortOrder: current.sortOrder },
+    }),
+  ]);
+
+  revalidatePath("/admin/locations");
+  revalidatePath("/locations");
+}
