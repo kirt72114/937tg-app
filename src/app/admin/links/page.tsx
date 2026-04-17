@@ -25,8 +25,10 @@ import {
   updateLinkItem,
   deleteLinkItem,
   reorderLinkItem,
-  seedFooterCollections,
+  seedReservedCollections,
+  RESERVED_SLUGS,
   FOOTER_SLUGS,
+  HOME_SLUGS,
 } from "@/lib/actions/links";
 
 type Collection = {
@@ -276,17 +278,15 @@ export default function AdminLinksPage() {
     await loadCollections();
   }
 
-  async function handleSeedFooter() {
+  async function handleSeedReserved() {
     setSaving(true);
     try {
-      const result = await seedFooterCollections();
+      const result = await seedReservedCollections();
       if (result.collectionsAdded === 0) {
-        alert(
-          "Footer collections already exist. Edit them below to change the footer link columns."
-        );
+        alert("All reserved collections already exist. Edit them below to change the public site.");
       } else {
         alert(
-          `Created ${result.collectionsAdded} footer collection(s) with ${result.itemsAdded} link(s). They now drive the public footer.`
+          `Created ${result.collectionsAdded} reserved collection(s) with ${result.itemsAdded} link(s). They now drive the homepage tile grid, the homepage resources strip, and the footer columns.`
         );
       }
       await loadCollections();
@@ -471,8 +471,9 @@ export default function AdminLinksPage() {
 
   // ─── Collections List View ────────────────────────────
 
-  const hasFooterCollections = collections.some(
-    (c) => c.slug === FOOTER_SLUGS.quick || c.slug === FOOTER_SLUGS.resources
+  const reservedSlugList = Array.from(RESERVED_SLUGS);
+  const allReservedSeeded = reservedSlugList.every((s) =>
+    collections.some((c) => c.slug === s)
   );
 
   return (
@@ -481,15 +482,15 @@ export default function AdminLinksPage() {
         <div>
           <h1 className="text-2xl font-bold">Link Collections</h1>
           <p className="text-sm text-muted-foreground">
-            Manage grouped links. Each collection is browsable at{" "}
+            Manage grouped links. Regular collections are browsable at{" "}
             <span className="font-mono">/links/&lt;slug&gt;</span>.
           </p>
         </div>
         <div className="flex gap-2">
-          {!hasFooterCollections && (
-            <Button variant="outline" onClick={handleSeedFooter} disabled={saving}>
+          {!allReservedSeeded && (
+            <Button variant="outline" onClick={handleSeedReserved} disabled={saving}>
               <Sparkles className="h-4 w-4 mr-2" />
-              Seed Footer Defaults
+              Seed Reserved Defaults
             </Button>
           )}
           <Button onClick={openCreateCollection}>
@@ -500,14 +501,32 @@ export default function AdminLinksPage() {
       </div>
 
       <Card className="mb-6 border-dashed">
-        <CardContent className="p-4 text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">Reserved slugs:</span>{" "}
-          collections with slug{" "}
-          <span className="font-mono">{FOOTER_SLUGS.quick}</span> and{" "}
-          <span className="font-mono">{FOOTER_SLUGS.resources}</span> drive
-          the two link columns in the public site footer. Their{" "}
-          <em>title</em> becomes the column heading. If they don&rsquo;t exist,
-          the footer shows hardcoded defaults.
+        <CardContent className="p-4 text-xs text-muted-foreground space-y-2">
+          <p>
+            <span className="font-medium text-foreground">Reserved slugs</span>{" "}
+            drive specific spots on the public site. Their <em>title</em>{" "}
+            becomes the section heading. If a reserved collection is missing,
+            the public site shows hardcoded defaults so nothing breaks.
+          </p>
+          <ul className="list-disc pl-5 space-y-0.5">
+            <li>
+              <span className="font-mono">{HOME_SLUGS.quick}</span> &mdash;
+              homepage tile grid
+            </li>
+            <li>
+              <span className="font-mono">{HOME_SLUGS.resources}</span> &mdash;
+              homepage resources strip
+            </li>
+            <li>
+              <span className="font-mono">{FOOTER_SLUGS.quick}</span> &mdash;
+              footer left column
+            </li>
+            <li>
+              <span className="font-mono">{FOOTER_SLUGS.resources}</span>{" "}
+              &mdash; footer right column
+            </li>
+          </ul>
+          <p>Reserved collections are hidden from the public <span className="font-mono">/links</span> index.</p>
         </CardContent>
       </Card>
 

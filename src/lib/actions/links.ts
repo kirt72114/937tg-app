@@ -143,19 +143,31 @@ export async function deleteLinkItem(id: string) {
   revalidatePath("/", "layout");
 }
 
-// ─── Footer Defaults ──────────────────────────────────
+// ─── Reserved Collections ─────────────────────────────
 
 export const FOOTER_SLUGS = {
   quick: "footer-quick",
   resources: "footer-resources",
 } as const;
 
-const FOOTER_DEFAULTS: {
+export const HOME_SLUGS = {
+  quick: "home-quick",
+  resources: "home-resources",
+} as const;
+
+export const RESERVED_SLUGS = new Set<string>([
+  FOOTER_SLUGS.quick,
+  FOOTER_SLUGS.resources,
+  HOME_SLUGS.quick,
+  HOME_SLUGS.resources,
+]);
+
+const RESERVED_DEFAULTS: {
   slug: string;
   title: string;
   description: string;
   sortOrder: number;
-  items: { title: string; url: string }[];
+  items: { title: string; url: string; icon?: string }[];
 }[] = [
   {
     slug: FOOTER_SLUGS.quick,
@@ -183,12 +195,43 @@ const FOOTER_DEFAULTS: {
       { title: "JBSA Connect", url: "/jbsa-connect" },
     ],
   },
+  {
+    slug: HOME_SLUGS.quick,
+    title: "Quick Links",
+    description: "Homepage tile grid",
+    sortOrder: 102,
+    items: [
+      { title: "In-Processing", url: "/in-processing", icon: "LogIn" },
+      { title: "Phone Numbers", url: "/phone-numbers", icon: "Phone" },
+      { title: "Leadership", url: "/leadership", icon: "Users" },
+      { title: "MTLs", url: "/mtls", icon: "UserCheck" },
+      { title: "Locations", url: "/locations", icon: "MapPin" },
+      { title: "Work Orders", url: "/work-orders", icon: "ClipboardList" },
+      { title: "AiT Guide", url: "/ait-guide", icon: "BookOpen" },
+      { title: "METC", url: "/metc", icon: "GraduationCap" },
+      { title: "Out-Processing", url: "/out-processing", icon: "LogOut" },
+      { title: "WO Status", url: "/work-orders/status", icon: "Search" },
+      { title: "Spartan/CQ", url: "/spartan-flight", icon: "Shield" },
+      { title: "Leadership Programs", url: "/leadership-programs", icon: "Award" },
+    ],
+  },
+  {
+    slug: HOME_SLUGS.resources,
+    title: "Resources",
+    description: "Homepage resources strip",
+    sortOrder: 103,
+    items: [
+      { title: "DFAC Hours", url: "/dfac-hours", icon: "UtensilsCrossed" },
+      { title: "Shuttle Route", url: "/shuttle", icon: "Bus" },
+      { title: "Leadership Programs", url: "/leadership-programs", icon: "Award" },
+    ],
+  },
 ];
 
-export async function seedFooterCollections() {
+export async function seedReservedCollections() {
   let collectionsAdded = 0;
   let itemsAdded = 0;
-  for (const def of FOOTER_DEFAULTS) {
+  for (const def of RESERVED_DEFAULTS) {
     let collection = await prisma.linkCollection.findUnique({
       where: { slug: def.slug },
     });
@@ -209,6 +252,7 @@ export async function seedFooterCollections() {
             collectionId: collection.id,
             title: item.title,
             url: item.url,
+            icon: item.icon,
             sortOrder: i + 1,
           },
         });
@@ -220,6 +264,9 @@ export async function seedFooterCollections() {
   revalidatePath("/", "layout");
   return { collectionsAdded, itemsAdded };
 }
+
+/** @deprecated use seedReservedCollections */
+export const seedFooterCollections = seedReservedCollections;
 
 export async function reorderLinkItem(id: string, direction: "up" | "down") {
   const current = await prisma.linkItem.findUnique({ where: { id } });
