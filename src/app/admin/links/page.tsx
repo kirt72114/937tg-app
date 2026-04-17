@@ -11,6 +11,7 @@ import {
   ExternalLink,
   ArrowLeft,
   Link as LinkIcon,
+  Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -24,6 +25,8 @@ import {
   updateLinkItem,
   deleteLinkItem,
   reorderLinkItem,
+  seedFooterCollections,
+  FOOTER_SLUGS,
 } from "@/lib/actions/links";
 
 type Collection = {
@@ -273,6 +276,25 @@ export default function AdminLinksPage() {
     await loadCollections();
   }
 
+  async function handleSeedFooter() {
+    setSaving(true);
+    try {
+      const result = await seedFooterCollections();
+      if (result.collectionsAdded === 0) {
+        alert(
+          "Footer collections already exist. Edit them below to change the footer link columns."
+        );
+      } else {
+        alert(
+          `Created ${result.collectionsAdded} footer collection(s) with ${result.itemsAdded} link(s). They now drive the public footer.`
+        );
+      }
+      await loadCollections();
+    } finally {
+      setSaving(false);
+    }
+  }
+
   // ─── Link Item CRUD ───────────────────────────────────
 
   function openCreateLink() {
@@ -449,20 +471,45 @@ export default function AdminLinksPage() {
 
   // ─── Collections List View ────────────────────────────
 
+  const hasFooterCollections = collections.some(
+    (c) => c.slug === FOOTER_SLUGS.quick || c.slug === FOOTER_SLUGS.resources
+  );
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Link Collections</h1>
           <p className="text-sm text-muted-foreground">
-            Manage grouped external links shown on the public site.
+            Manage grouped links. Each collection is browsable at{" "}
+            <span className="font-mono">/links/&lt;slug&gt;</span>.
           </p>
         </div>
-        <Button onClick={openCreateCollection}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Collection
-        </Button>
+        <div className="flex gap-2">
+          {!hasFooterCollections && (
+            <Button variant="outline" onClick={handleSeedFooter} disabled={saving}>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Seed Footer Defaults
+            </Button>
+          )}
+          <Button onClick={openCreateCollection}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Collection
+          </Button>
+        </div>
       </div>
+
+      <Card className="mb-6 border-dashed">
+        <CardContent className="p-4 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Reserved slugs:</span>{" "}
+          collections with slug{" "}
+          <span className="font-mono">{FOOTER_SLUGS.quick}</span> and{" "}
+          <span className="font-mono">{FOOTER_SLUGS.resources}</span> drive
+          the two link columns in the public site footer. Their{" "}
+          <em>title</em> becomes the column heading. If they don&rsquo;t exist,
+          the footer shows hardcoded defaults.
+        </CardContent>
+      </Card>
 
       {showCollectionForm && (
         <Card className="mb-6">

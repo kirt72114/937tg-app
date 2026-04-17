@@ -48,6 +48,7 @@ export async function createCollection(data: {
     },
   });
   revalidatePath("/admin/links");
+  revalidatePath("/", "layout");
   return collection;
 }
 
@@ -60,12 +61,14 @@ export async function updateCollection(
     data,
   });
   revalidatePath("/admin/links");
+  revalidatePath("/", "layout");
   return collection;
 }
 
 export async function deleteCollection(id: string) {
   await prisma.linkCollection.delete({ where: { id } });
   revalidatePath("/admin/links");
+  revalidatePath("/", "layout");
 }
 
 export async function reorderCollection(id: string, direction: "up" | "down") {
@@ -93,6 +96,7 @@ export async function reorderCollection(id: string, direction: "up" | "down") {
     }),
   ]);
   revalidatePath("/admin/links");
+  revalidatePath("/", "layout");
 }
 
 // ─── Link Items ───────────────────────────────────────
@@ -119,6 +123,7 @@ export async function createLinkItem(data: {
     },
   });
   revalidatePath("/admin/links");
+  revalidatePath("/", "layout");
   return item;
 }
 
@@ -128,12 +133,92 @@ export async function updateLinkItem(
 ) {
   const item = await prisma.linkItem.update({ where: { id }, data });
   revalidatePath("/admin/links");
+  revalidatePath("/", "layout");
   return item;
 }
 
 export async function deleteLinkItem(id: string) {
   await prisma.linkItem.delete({ where: { id } });
   revalidatePath("/admin/links");
+  revalidatePath("/", "layout");
+}
+
+// ─── Footer Defaults ──────────────────────────────────
+
+export const FOOTER_SLUGS = {
+  quick: "footer-quick",
+  resources: "footer-resources",
+} as const;
+
+const FOOTER_DEFAULTS: {
+  slug: string;
+  title: string;
+  description: string;
+  sortOrder: number;
+  items: { title: string; url: string }[];
+}[] = [
+  {
+    slug: FOOTER_SLUGS.quick,
+    title: "Quick Links",
+    description: "Left footer column",
+    sortOrder: 100,
+    items: [
+      { title: "Leadership", url: "/leadership" },
+      { title: "Phone Numbers", url: "/phone-numbers" },
+      { title: "Work Orders", url: "/work-orders" },
+      { title: "Locations", url: "/locations" },
+      { title: "In-Processing", url: "/in-processing" },
+    ],
+  },
+  {
+    slug: FOOTER_SLUGS.resources,
+    title: "Resources",
+    description: "Right footer column",
+    sortOrder: 101,
+    items: [
+      { title: "AiT Guide", url: "/ait-guide" },
+      { title: "DFAC Hours", url: "/dfac-hours" },
+      { title: "Shuttle Route", url: "/shuttle" },
+      { title: "Military OneSource", url: "/military-onesource" },
+      { title: "JBSA Connect", url: "/jbsa-connect" },
+    ],
+  },
+];
+
+export async function seedFooterCollections() {
+  let collectionsAdded = 0;
+  let itemsAdded = 0;
+  for (const def of FOOTER_DEFAULTS) {
+    let collection = await prisma.linkCollection.findUnique({
+      where: { slug: def.slug },
+    });
+    if (!collection) {
+      collection = await prisma.linkCollection.create({
+        data: {
+          slug: def.slug,
+          title: def.title,
+          description: def.description,
+          sortOrder: def.sortOrder,
+        },
+      });
+      collectionsAdded++;
+      for (let i = 0; i < def.items.length; i++) {
+        const item = def.items[i];
+        await prisma.linkItem.create({
+          data: {
+            collectionId: collection.id,
+            title: item.title,
+            url: item.url,
+            sortOrder: i + 1,
+          },
+        });
+        itemsAdded++;
+      }
+    }
+  }
+  revalidatePath("/admin/links");
+  revalidatePath("/", "layout");
+  return { collectionsAdded, itemsAdded };
 }
 
 export async function reorderLinkItem(id: string, direction: "up" | "down") {
@@ -162,4 +247,5 @@ export async function reorderLinkItem(id: string, direction: "up" | "down") {
     }),
   ]);
   revalidatePath("/admin/links");
+  revalidatePath("/", "layout");
 }
