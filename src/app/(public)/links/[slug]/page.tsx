@@ -39,7 +39,13 @@ import {
 import {
   getCollectionBySlug,
   getAllCollectionSlugs,
+  FOOTER_SLUGS,
 } from "@/lib/actions/links";
+
+const HIDDEN_SLUGS = new Set<string>([
+  FOOTER_SLUGS.quick,
+  FOOTER_SLUGS.resources,
+]);
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Globe,
@@ -79,6 +85,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  if (HIDDEN_SLUGS.has(slug)) return { title: "Links" };
   const collection = await getCollectionBySlug(slug);
   if (!collection) return { title: "Links" };
   return {
@@ -89,7 +96,9 @@ export async function generateMetadata({
 
 export async function generateStaticParams() {
   const collections = await getAllCollectionSlugs();
-  return collections.map((c) => ({ slug: c.slug }));
+  return collections
+    .filter((c) => !HIDDEN_SLUGS.has(c.slug))
+    .map((c) => ({ slug: c.slug }));
 }
 
 export default async function LinkCollectionPage({
@@ -98,6 +107,7 @@ export default async function LinkCollectionPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  if (HIDDEN_SLUGS.has(slug)) notFound();
   const collection = await getCollectionBySlug(slug);
   if (!collection) notFound();
 
