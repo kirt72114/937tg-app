@@ -45,6 +45,7 @@ export async function createPage(data: {
     },
   });
   revalidatePath("/admin/pages");
+  revalidatePath(`/${page.slug}`);
   return page;
 }
 
@@ -69,10 +70,12 @@ export async function updatePage(
   });
   revalidatePath("/admin/pages");
   revalidatePath(`/admin/pages/${id}`);
+  revalidatePath(`/${page.slug}`);
   return page;
 }
 
 export async function deletePage(id: string) {
-  await prisma.page.delete({ where: { id } });
+  const page = await prisma.page.delete({ where: { id } });
   revalidatePath("/admin/pages");
+  revalidatePath(`/${page.slug}`);
 }
