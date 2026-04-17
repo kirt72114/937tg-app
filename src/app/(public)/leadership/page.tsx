@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import { PageHeader } from "@/components/shared/page-header";
 import { prisma } from "@/lib/prisma";
+import { getAllSquadrons } from "@/lib/actions/squadrons";
+import { getAllSettings } from "@/lib/actions/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -17,57 +19,18 @@ type Leader = {
   photoUrl: string | null;
 };
 
-const GROUP_UNIT = "937th Training Group";
-const GROUP_DESCRIPTION = `The 937th Training Group, headquartered at JBSA-Fort Sam Houston, Texas, is a crucial component of the 59th Medical Wing. The group is dedicated to providing world-class enlisted medical readiness training at the Medical Education and Training Campus.
-
-With a dedicated team of 601 active-duty and civilian professionals, the group bears the responsibility for preparing over 14,700 students annually across 82 programs of instruction spanning 64 distinct courses and components, covering 51 enlisted Air Force specialty codes.
-
-The group's mission extends to overseeing the completion of Phase II initial skills training for enlisted Air Force specialty codes and conducting officer clinical readiness training, ensuring personnel are ready to deliver healthcare in all settings and conditions.`;
-
-const SQUADRONS: Array<{
+type Squadron = {
+  id: string;
   unit: string;
-  motto: string;
-  mission: string;
-  vision: string;
-  afscs: string[];
-}> = [
-  {
-    unit: "381st Training Squadron",
-    motto: "Forge to Excellence and Commitment",
-    mission: "To train and empower mission-essential medics.",
-    vision:
-      "An inclusive team, developing one medic at a time for the future fight.",
-    afscs: ["4Y0X1 - Dental Assistant", "4Y0X2 - Dental Laboratory"],
-  },
-  {
-    unit: "382d Training Squadron",
-    motto: "Train Today's Medics for Tomorrow's Fight",
-    mission:
-      "Educate, develop, and inspire one enlisted medic at a time — ready to fight.",
-    vision: "To be the premier training pipeline for joint medical forces.",
-    afscs: [
-      "4A0X1 - Health Services Management",
-      "4A2X1 - Biomedical Equipment",
-      "4N0X2 - Physical Medicine",
-      "4P0X1 - Pharmacy",
-      "4H0X1 - Diagnostic Imaging",
-      "6A0X2 - Medical Materiel",
-      "4D0X1 - Diet Therapy",
-    ],
-  },
-  {
-    unit: "383d Training Squadron",
-    motto: "METC's Finest, Mission Focused",
-    mission: "Develop Warrior Medics.",
-    vision: "Train. Inform. Transform.",
-    afscs: [
-      "4C0X1 - Mental Health Service",
-      "4H0X1 - Cardiopulmonary Laboratory",
-      "4N0X1 - Aerospace Medical Service",
-      "4Y0X1 - Surgical Service",
-    ],
-  },
-];
+  motto: string | null;
+  mission: string | null;
+  vision: string | null;
+  afscs: unknown;
+};
+
+function squadronAfscs(value: unknown): string[] {
+  return Array.isArray(value) ? value.map(String) : [];
+}
 
 // Display order within a squadron — titles listed here appear first, in this order.
 const TITLE_ORDER = [
@@ -129,7 +92,17 @@ function LeaderPhoto({
   );
 }
 
-function GroupSection({ leaders }: { leaders: Leader[] }) {
+function GroupSection({
+  leaders,
+  groupUnit,
+  groupDescription,
+  location,
+}: {
+  leaders: Leader[];
+  groupUnit: string;
+  groupDescription: string;
+  location: string;
+}) {
   const ordered = orderLeaders(leaders);
   const commander = ordered.find((l) => l.title === "Commander");
   const others = ordered.filter((l) => l.title !== "Commander");
@@ -140,17 +113,15 @@ function GroupSection({ leaders }: { leaders: Leader[] }) {
         <div className="flex items-center gap-4 mb-8">
           <img
             src="/images/937Logo.png"
-            alt="937th Training Group Emblem"
+            alt={`${groupUnit} Emblem`}
             className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-white p-1"
           />
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold">{GROUP_UNIT}</h2>
+            <h2 className="text-2xl md:text-3xl font-bold">{groupUnit}</h2>
             <p className="text-sm text-gray-300">
               Medical Education &amp; Training Campus (METC)
             </p>
-            <p className="text-xs text-gray-400">
-              JBSA-Fort Sam Houston, TX
-            </p>
+            <p className="text-xs text-gray-400">{location}</p>
           </div>
         </div>
 
@@ -199,7 +170,7 @@ function GroupSection({ leaders }: { leaders: Leader[] }) {
               </div>
 
               <div className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">
-                {GROUP_DESCRIPTION}
+                {groupDescription}
               </div>
             </div>
           </div>
@@ -213,13 +184,14 @@ function SquadronSection({
   squadron,
   leaders,
 }: {
-  squadron: (typeof SQUADRONS)[number];
+  squadron: Squadron;
   leaders: Leader[];
 }) {
   const ordered = orderLeaders(leaders);
   const commander = ordered.find((l) => l.title === "Commander");
   const others = ordered.filter((l) => l.title !== "Commander");
-  const squadronNumber = squadron.unit.match(/\d+/)?.[0];
+  const squadronNumber = squadron.unit.match(/\d+/)?.[0] ?? "";
+  const afscs = squadronAfscs(squadron.afscs);
 
   return (
     <section className="rounded-lg bg-[#3a6fbf] text-white overflow-hidden">
@@ -296,24 +268,24 @@ function SquadronSection({
                   <h3 className="text-sm font-bold uppercase tracking-wider text-yellow-300">
                     Mission
                   </h3>
-                  <p className="text-sm text-blue-100">{squadron.mission}</p>
+                  <p className="text-sm text-blue-100">{squadron.mission ?? ""}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-yellow-300">
                     Vision
                   </h3>
-                  <p className="text-sm text-blue-100">{squadron.vision}</p>
+                  <p className="text-sm text-blue-100">{squadron.vision ?? ""}</p>
                 </div>
               </div>
             </div>
 
-            {squadron.afscs.length > 0 && (
+            {afscs.length > 0 && (
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-yellow-300 mb-2">
                   AFSCs
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
-                  {squadron.afscs.map((afsc) => (
+                  {afscs.map((afsc) => (
                     <p key={afsc} className="text-xs text-blue-100">
                       {afsc}
                     </p>
@@ -329,21 +301,29 @@ function SquadronSection({
 }
 
 export default async function LeadershipPage() {
-  const allLeaders = await prisma.leadershipProfile.findMany({
-    where: { isActive: true, profileType: "leadership" },
-    orderBy: { sortOrder: "asc" },
-    select: {
-      id: true,
-      name: true,
-      rank: true,
-      title: true,
-      unit: true,
-      photoUrl: true,
-    },
-  });
+  const [allLeaders, squadrons, settings] = await Promise.all([
+    prisma.leadershipProfile.findMany({
+      where: { isActive: true, profileType: "leadership" },
+      orderBy: { sortOrder: "asc" },
+      select: {
+        id: true,
+        name: true,
+        rank: true,
+        title: true,
+        unit: true,
+        photoUrl: true,
+      },
+    }),
+    getAllSquadrons(),
+    getAllSettings(),
+  ]);
 
-  const groupLeaders = allLeaders.filter((l) => l.unit === GROUP_UNIT);
-  const squadronLeaders = SQUADRONS.map((squadron) => ({
+  const groupUnit = settings.siteName || "937th Training Group";
+  const groupDescription = settings.groupDescription || "";
+  const location = settings.location || "JBSA-Fort Sam Houston, TX";
+
+  const groupLeaders = allLeaders.filter((l) => l.unit === groupUnit);
+  const squadronLeaders = squadrons.map((squadron) => ({
     squadron,
     leaders: allLeaders.filter((l) => l.unit === squadron.unit),
   }));
@@ -352,13 +332,18 @@ export default async function LeadershipPage() {
     <div>
       <PageHeader
         title="Meet Your Leadership"
-        description="The command team of the 937th Training Group at JBSA-Fort Sam Houston."
+        description={`The command team of the ${groupUnit} at ${location}.`}
       />
       <div className="mx-auto max-w-7xl px-4 py-8 space-y-8">
-        <GroupSection leaders={groupLeaders} />
+        <GroupSection
+          leaders={groupLeaders}
+          groupUnit={groupUnit}
+          groupDescription={groupDescription}
+          location={location}
+        />
         {squadronLeaders.map(({ squadron, leaders }) => (
           <SquadronSection
-            key={squadron.unit}
+            key={squadron.id}
             squadron={squadron}
             leaders={leaders}
           />

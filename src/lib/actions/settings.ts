@@ -11,6 +11,11 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   siteDescription: "Official website of the 937th Training Group, JBSA-Fort Sam Houston",
   mission: "Together we develop Warrior Medics by providing comprehensive medical education and readiness training.",
   vision: "Premier Medics: Agile, Empowered and Innovative",
+  groupDescription: `The 937th Training Group, headquartered at JBSA-Fort Sam Houston, Texas, is a crucial component of the 59th Medical Wing. The group is dedicated to providing world-class enlisted medical readiness training at the Medical Education and Training Campus.
+
+With a dedicated team of 601 active-duty and civilian professionals, the group bears the responsibility for preparing over 14,700 students annually across 82 programs of instruction spanning 64 distinct courses and components, covering 51 enlisted Air Force specialty codes.
+
+The group's mission extends to overseeing the completion of Phase II initial skills training for enlisted Air Force specialty codes and conducting officer clinical readiness training, ensuring personnel are ready to deliver healthcare in all settings and conditions.`,
   primaryColor: "#1a3a6b",
   accentColor: "#c5a04e",
   navyColor: "#0f2444",

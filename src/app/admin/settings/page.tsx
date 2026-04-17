@@ -54,6 +54,7 @@ export default function AdminSettingsPage() {
   const [description, setDescription] = useState("");
   const [mission, setMission] = useState("");
   const [vision, setVision] = useState("");
+  const [groupDescription, setGroupDescription] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#1a3a6b");
   const [accentColor, setAccentColor] = useState("#c5a04e");
   const [navyColor, setNavyColor] = useState("#0f2444");
@@ -70,6 +71,7 @@ export default function AdminSettingsPage() {
       setDescription(settings.siteDescription || "");
       setMission(settings.mission || "");
       setVision(settings.vision || "");
+      setGroupDescription(settings.groupDescription || "");
       setPrimaryColor(settings.primaryColor || "#1a3a6b");
       setAccentColor(settings.accentColor || "#c5a04e");
       setNavyColor(settings.navyColor || "#0f2444");
@@ -92,6 +94,7 @@ export default function AdminSettingsPage() {
         siteDescription: description,
         mission,
         vision,
+        groupDescription,
         primaryColor,
         accentColor,
         navyColor,
@@ -211,6 +214,19 @@ export default function AdminSettingsPage() {
                 value={vision}
                 onChange={(e) => setVision(e.target.value)}
               />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Group Description</label>
+              <textarea
+                value={groupDescription}
+                onChange={(e) => setGroupDescription(e.target.value)}
+                rows={6}
+                className={textareaClasses}
+              />
+              <p className="text-xs text-muted-foreground">
+                Long-form description shown in the group section of the
+                Leadership page. Blank lines create paragraph breaks.
+              </p>
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Footer Tagline</label>

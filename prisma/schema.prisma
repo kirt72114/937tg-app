@@ -298,6 +298,22 @@ model RopeProgram {
   @@map("rope_programs")
 }
 
+// ─── Squadrons ────────────────────────────────────────
+
+model Squadron {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  unit        String   @unique
+  motto       String?
+  mission     String?
+  vision      String?
+  afscs       Json?    @db.JsonB
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("squadrons")
+}
+
 // ─── Site Settings ────────────────────────────────────
 
 model SiteSetting {
