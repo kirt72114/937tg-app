@@ -68,3 +68,43 @@ export async function createAdminUser(data: {
   revalidatePath("/admin/users");
   return { admin };
 }
+
+export async function getAllAdminUsers() {
+  return prisma.adminUser.findMany({
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      createdAt: true,
+    },
+  });
+}
+
+export async function updateAdminUser(
+  id: string,
+  data: { name?: string; role?: "super_admin" | "admin" | "editor" }
+) {
+  const admin = await prisma.adminUser.update({
+    where: { id },
+    data,
+  });
+  revalidatePath("/admin/users");
+  return { admin };
+}
+
+export async function deleteAdminUser(id: string) {
+  const admin = await prisma.adminUser.findUnique({ where: { id } });
+  if (!admin) return { error: "User not found" };
+
+  const supabaseAdmin = createAdminClient();
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(
+    admin.supabaseAuthId
+  );
+  if (error) return { error: error.message };
+
+  await prisma.adminUser.delete({ where: { id } });
+  revalidatePath("/admin/users");
+  return { ok: true };
+}
