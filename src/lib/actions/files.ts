@@ -80,6 +80,27 @@ export async function listUploadedFiles() {
   });
 }
 
+export async function listPublicFiles() {
+  const supabase = await createClient();
+  const files = await prisma.file.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
+  return files.map((f) => {
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(f.storagePath);
+    return {
+      id: f.id,
+      filename: f.filename,
+      mimeType: f.mimeType,
+      sizeBytes: Number(f.sizeBytes),
+      publicUrl,
+      createdAt: f.createdAt,
+    };
+  });
+}
+
 export async function deleteUploadedFile(id: string) {
   const file = await prisma.file.findUnique({ where: { id } });
   if (!file) return { error: "File not found" };

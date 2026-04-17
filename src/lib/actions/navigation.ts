@@ -139,7 +139,8 @@ const DEFAULT_NAV_ITEMS: { label: string; href: string; icon: string; section: N
   { label: "JBSA Connect", href: "/jbsa-connect", icon: "Link", section: "more", sortOrder: 10 },
   { label: "Share App", href: "/share", icon: "Share2", section: "more", sortOrder: 11 },
   { label: "Links", href: "/links", icon: "Link", section: "more", sortOrder: 12 },
-  { label: "Admin", href: "/admin", icon: "Shield", section: "more", sortOrder: 13 },
+  { label: "Files", href: "/files", icon: "FileText", section: "more", sortOrder: 13 },
+  { label: "Admin", href: "/admin", icon: "Shield", section: "more", sortOrder: 14 },
 ];
 
 export async function seedDefaultNavigation() {
