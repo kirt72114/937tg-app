@@ -90,9 +90,17 @@ function toNavItems(items: readonly { label: string; href: string; icon: string 
   return items.map((i) => ({ label: i.label, href: i.href, icon: i.icon, section: "primary" }));
 }
 
-export function Header({ navItems }: { navItems?: NavItemData[] }) {
+export function Header({
+  navItems,
+  settings,
+}: {
+  navItems?: NavItemData[];
+  settings?: Record<string, string>;
+}) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+
+  const siteName = settings?.siteName || SITE_CONFIG.name;
 
   const primaryItems = navItems
     ? navItems.filter((i) => i.section === "primary")
@@ -115,7 +123,7 @@ export function Header({ navItems }: { navItems?: NavItemData[] }) {
           />
           <div className="hidden sm:block">
             <div className="text-sm font-bold leading-tight">
-              {SITE_CONFIG.name}
+              {siteName}
             </div>
             <div className="text-xs text-gray-300">
               {SITE_CONFIG.branch}

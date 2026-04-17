@@ -37,5 +37,5 @@ export async function saveSettings(settings: Record<string, string>) {
   );
   await prisma.$transaction(operations);
   revalidatePath("/admin/settings");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }

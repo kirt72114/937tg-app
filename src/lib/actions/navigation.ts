@@ -41,7 +41,7 @@ export async function createNavItem(data: {
     },
   });
   revalidatePath("/admin/navigation");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return item;
 }
 
@@ -60,14 +60,14 @@ export async function updateNavItem(
     data,
   });
   revalidatePath("/admin/navigation");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return item;
 }
 
 export async function deleteNavItem(id: string) {
   await prisma.navigationItem.delete({ where: { id } });
   revalidatePath("/admin/navigation");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }
 
 export async function reorderNavItem(id: string, direction: "up" | "down") {
@@ -98,7 +98,7 @@ export async function reorderNavItem(id: string, direction: "up" | "down") {
   ]);
 
   revalidatePath("/admin/navigation");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }
 
 export async function toggleNavVisibility(id: string) {
@@ -110,7 +110,7 @@ export async function toggleNavVisibility(id: string) {
     data: { isVisible: !item.isVisible },
   });
   revalidatePath("/admin/navigation");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
 }
 
 const DEFAULT_NAV_ITEMS: { label: string; href: string; icon: string; section: NavSection; sortOrder: number }[] = [
@@ -138,6 +138,8 @@ const DEFAULT_NAV_ITEMS: { label: string; href: string; icon: string; section: N
   { label: "SAFEREP", href: "/saferep", icon: "ShieldAlert", section: "more", sortOrder: 9 },
   { label: "JBSA Connect", href: "/jbsa-connect", icon: "Link", section: "more", sortOrder: 10 },
   { label: "Share App", href: "/share", icon: "Share2", section: "more", sortOrder: 11 },
+  { label: "Links", href: "/links", icon: "Link", section: "more", sortOrder: 12 },
+  { label: "Admin", href: "/admin", icon: "Shield", section: "more", sortOrder: 13 },
 ];
 
 export async function seedDefaultNavigation() {
@@ -152,6 +154,6 @@ export async function seedDefaultNavigation() {
     }
   }
   revalidatePath("/admin/navigation");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return { added };
 }

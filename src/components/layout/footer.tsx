@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/constants";
 
-export function Footer() {
+export function Footer({ settings }: { settings?: Record<string, string> }) {
+  const siteName = settings?.siteName || SITE_CONFIG.name;
+  const mission = settings?.mission || SITE_CONFIG.mission;
+  const footerText = settings?.footerText;
+
   return (
     <footer className="border-t bg-military-navy text-gray-300">
       <div className="mx-auto max-w-7xl px-4 py-8">
@@ -14,7 +18,7 @@ export function Footer() {
               </div>
               <div>
                 <div className="text-sm font-bold text-white">
-                  {SITE_CONFIG.name}
+                  {siteName}
                 </div>
                 <div className="text-xs text-gray-400">
                   {SITE_CONFIG.location}
@@ -22,7 +26,7 @@ export function Footer() {
               </div>
             </div>
             <p className="text-xs text-gray-400 leading-relaxed">
-              {SITE_CONFIG.mission}
+              {mission}
             </p>
           </div>
 
@@ -79,11 +83,10 @@ export function Footer() {
 
         <div className="mt-8 border-t border-military-blue pt-4 text-center">
           <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} {SITE_CONFIG.name}. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} {siteName}. All rights reserved.
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            {SITE_CONFIG.branch} &bull; {SITE_CONFIG.location}
+            {footerText || `${SITE_CONFIG.branch} \u2022 ${SITE_CONFIG.location}`}
           </p>
         </div>
       </div>
