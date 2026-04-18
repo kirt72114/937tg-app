@@ -92,6 +92,10 @@ export default function AdminPageEditorPage() {
   }
 
   async function handleSave() {
+    return handleSaveWithPublish(isPublished);
+  }
+
+  async function handleSaveWithPublish(published: boolean) {
     if (!title.trim()) {
       setError("Title is required");
       return;
@@ -113,7 +117,7 @@ export default function AdminPageEditorPage() {
           metaDescription: metaDescription || undefined,
           pageType,
           externalUrl: externalUrl || undefined,
-          isPublished,
+          isPublished: published,
         });
         router.push(`/admin/pages/${page.id}`);
       } else {
@@ -124,7 +128,7 @@ export default function AdminPageEditorPage() {
           metaDescription,
           pageType,
           externalUrl: externalUrl || undefined,
-          isPublished,
+          isPublished: published,
         });
       }
     } catch (err) {
@@ -237,14 +241,17 @@ export default function AdminPageEditorPage() {
               <Button
                 variant={isPublished ? "outline" : "default"}
                 className="w-full"
-                onClick={() => setIsPublished(!isPublished)}
+                disabled={saving || !title}
+                onClick={async () => {
+                  const next = !isPublished;
+                  setIsPublished(next);
+                  await new Promise((r) => setTimeout(r, 0));
+                  handleSaveWithPublish(next);
+                }}
               >
                 <Globe className="h-4 w-4 mr-2" />
                 {isPublished ? "Unpublish" : "Publish"}
               </Button>
-              <p className="text-xs text-muted-foreground">
-                Changes take effect after clicking Save.
-              </p>
             </CardContent>
           </Card>
 
