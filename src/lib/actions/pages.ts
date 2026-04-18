@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { PageType } from "@prisma/client";
+import { DEFAULT_PAGES } from "@/lib/seed-default-pages";
 
 export async function getPublishedPages() {
   return prisma.page.findMany({
@@ -99,4 +100,36 @@ export async function deletePage(id: string) {
   const page = await prisma.page.delete({ where: { id } });
   revalidatePath("/admin/pages");
   revalidatePath(`/${page.slug}`);
+}
+
+export async function seedDefaultPages() {
+  let added = 0;
+  let skipped = 0;
+  const maxOrder = await prisma.page.aggregate({ _max: { sortOrder: true } });
+  let nextOrder = (maxOrder._max.sortOrder ?? 0) + 1;
+
+  for (const def of DEFAULT_PAGES) {
+    const existing = await prisma.page.findUnique({
+      where: { slug: def.slug },
+    });
+    if (existing) {
+      skipped++;
+      continue;
+    }
+    await prisma.page.create({
+      data: {
+        title: def.title,
+        slug: def.slug,
+        metaDescription: def.metaDescription,
+        content: { blocks: def.blocks },
+        pageType: "dynamic",
+        isPublished: true,
+        sortOrder: nextOrder++,
+      },
+    });
+    revalidatePath(`/${def.slug}`);
+    added++;
+  }
+  revalidatePath("/admin/pages");
+  return { added, skipped };
 }

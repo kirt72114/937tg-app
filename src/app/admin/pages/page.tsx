@@ -5,9 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/admin/data-table";
-import { Plus, Search, FileText } from "lucide-react";
+import { Plus, Search, FileText, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getAllPages, deletePage } from "@/lib/actions/pages";
+import {
+  getAllPages,
+  deletePage,
+  seedDefaultPages,
+} from "@/lib/actions/pages";
 import { useRouter } from "next/navigation";
 
 type PageItem = {
@@ -74,12 +78,30 @@ export default function AdminPagesPage() {
   const router = useRouter();
   const [data, setData] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
   const [search, setSearch] = useState("");
 
   async function loadData() {
     const items = await getAllPages();
     setData(items as PageItem[]);
     setLoading(false);
+  }
+
+  async function handleSeed() {
+    setSeeding(true);
+    try {
+      const result = await seedDefaultPages();
+      if (result.added === 0) {
+        alert(`All ${result.skipped} default pages already exist.`);
+      } else {
+        alert(
+          `Added ${result.added} page(s).${result.skipped ? ` Skipped ${result.skipped} that already existed.` : ""}`
+        );
+      }
+      await loadData();
+    } finally {
+      setSeeding(false);
+    }
   }
 
   useEffect(() => {
@@ -107,12 +129,22 @@ export default function AdminPagesPage() {
             Manage your site content pages.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/admin/pages/new">
-            <Plus className="h-4 w-4 mr-2" />
-            New Page
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleSeed}
+            disabled={seeding}
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            {seeding ? "Seeding..." : "Seed Default Pages"}
+          </Button>
+          <Button asChild>
+            <Link href="/admin/pages/new">
+              <Plus className="h-4 w-4 mr-2" />
+              New Page
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="relative mb-4 max-w-sm">

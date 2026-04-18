@@ -10,6 +10,8 @@ import {
   type StepsCardBlock,
   type CtaBannerBlock,
   type ResourceGridBlock,
+  type StatsGridBlock,
+  type CardGridBlock,
   getColorClasses,
 } from "@/lib/block-types";
 import { getIcon } from "@/lib/block-icons";
@@ -55,6 +57,10 @@ function BlockItem({ block }: { block: ContentBlock }) {
       return <CtaBannerRenderer data={block.data} />;
     case "resourceGrid":
       return <ResourceGridRenderer data={block.data} />;
+    case "statsGrid":
+      return <StatsGridRenderer data={block.data} />;
+    case "cardGrid":
+      return <CardGridRenderer data={block.data} />;
     default:
       return null;
   }
@@ -377,6 +383,7 @@ function ResourceGridRenderer({ data }: { data: ResourceGridBlock["data"] }) {
     <div className={cn("grid gap-4", gridClass)}>
       {data.resources.map((resource, i) => {
         const Icon = getIcon(resource.icon);
+        const colors = getColorClasses(resource.iconColor || "blue");
         return (
           <a
             key={i}
@@ -389,7 +396,14 @@ function ResourceGridRenderer({ data }: { data: ResourceGridBlock["data"] }) {
               <CardContent className="p-5">
                 <div className="flex items-start gap-3">
                   {Icon && (
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-military-blue/10 text-military-blue">
+                    <div
+                      className={cn(
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
+                        resource.iconColor
+                          ? cn(colors.bg, colors.text)
+                          : "bg-military-blue/10 text-military-blue"
+                      )}
+                    >
                       <Icon className="h-5 w-5" />
                     </div>
                   )}
@@ -408,6 +422,76 @@ function ResourceGridRenderer({ data }: { data: ResourceGridBlock["data"] }) {
           </a>
         );
       })}
+    </div>
+  );
+}
+
+function StatsGridRenderer({ data }: { data: StatsGridBlock["data"] }) {
+  const cols = data.columns || 3;
+  const gridClass =
+    cols === 2
+      ? "grid-cols-2"
+      : cols === 4
+        ? "grid-cols-2 sm:grid-cols-4"
+        : cols === 6
+          ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-6"
+          : "grid-cols-2 sm:grid-cols-3";
+
+  return (
+    <div className={cn("grid gap-3", gridClass)}>
+      {data.stats.map((stat, i) => (
+        <Card key={i}>
+          <CardContent className="p-4 text-center">
+            <p className="text-lg font-bold text-military-blue">{stat.value}</p>
+            <p className="text-xs text-muted-foreground">{stat.label}</p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function CardGridRenderer({ data }: { data: CardGridBlock["data"] }) {
+  const cols = data.columns || 3;
+  const gridClass =
+    cols === 2
+      ? "grid-cols-1 sm:grid-cols-2"
+      : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+
+  return (
+    <div className="space-y-4">
+      {data.heading && <h2 className="text-lg font-bold">{data.heading}</h2>}
+      <div className={cn("grid gap-4", gridClass)}>
+        {data.cards.map((card, i) => {
+          const Icon = getIcon(card.icon);
+          const colors = getColorClasses(card.iconColor);
+          return (
+            <Card key={i} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-5">
+                <div className="flex items-start gap-3">
+                  {Icon && (
+                    <div
+                      className={cn(
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
+                        colors.bg,
+                        colors.text
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1">{card.title}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {card.description}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }

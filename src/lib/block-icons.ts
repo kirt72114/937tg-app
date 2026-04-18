@@ -34,6 +34,11 @@ import {
   Wrench,
   Clipboard,
   Activity,
+  Route,
+  Scale,
+  Brain,
+  HeartHandshake,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -73,6 +78,11 @@ export const blockIcons: Record<string, LucideIcon> = {
   Users,
   Wrench,
   Zap,
+  Route,
+  Scale,
+  Brain,
+  HeartHandshake,
+  Building2,
 };
 
 export const iconNames = Object.keys(blockIcons).sort();

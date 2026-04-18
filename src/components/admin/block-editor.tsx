@@ -24,6 +24,8 @@ import {
   type StepsCardBlock,
   type CtaBannerBlock,
   type ResourceGridBlock,
+  type StatsGridBlock,
+  type CardGridBlock,
   BLOCK_TYPE_META,
   COLOR_OPTIONS,
   createDefaultBlock,
@@ -213,6 +215,10 @@ function getBlockSummary(block: ContentBlock): string {
       return block.data.title || "(untitled)";
     case "resourceGrid":
       return `${block.data.resources.length} resources`;
+    case "statsGrid":
+      return `${block.data.stats.length} stats`;
+    case "cardGrid":
+      return `${block.data.heading ? block.data.heading + " — " : ""}${block.data.cards.length} cards`;
   }
 }
 
@@ -246,6 +252,10 @@ function BlockTypeEditor({
       return <CtaBannerEditor data={block.data} onChange={(data) => onChange({ type: "ctaBanner", data })} />;
     case "resourceGrid":
       return <ResourceGridEditor data={block.data} onChange={(data) => onChange({ type: "resourceGrid", data })} />;
+    case "statsGrid":
+      return <StatsGridEditor data={block.data} onChange={(data) => onChange({ type: "statsGrid", data })} />;
+    case "cardGrid":
+      return <CardGridEditor data={block.data} onChange={(data) => onChange({ type: "cardGrid", data })} />;
   }
 }
 
@@ -819,6 +829,204 @@ function CtaBannerEditor({
           className={cn(textareaClasses, "min-h-[60px]")}
           placeholder="Banner body text..."
         />
+      </div>
+    </div>
+  );
+}
+
+function StatsGridEditor({
+  data,
+  onChange,
+}: {
+  data: StatsGridBlock["data"];
+  onChange: (data: StatsGridBlock["data"]) => void;
+}) {
+  function updateStat(index: number, field: "label" | "value", val: string) {
+    const next = [...data.stats];
+    next[index] = { ...next[index], [field]: val };
+    onChange({ ...data, stats: next });
+  }
+
+  function addStat() {
+    onChange({ ...data, stats: [...data.stats, { label: "", value: "" }] });
+  }
+
+  function removeStat(index: number) {
+    onChange({ ...data, stats: data.stats.filter((_, i) => i !== index) });
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <FieldLabel>Columns</FieldLabel>
+        <div className="flex gap-2">
+          {[2, 3, 4, 6].map((n) => (
+            <button
+              key={n}
+              onClick={() => onChange({ ...data, columns: n })}
+              className={cn(
+                "px-3 py-1.5 text-xs rounded-md border transition-colors",
+                (data.columns || 3) === n
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "hover:bg-muted"
+              )}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <FieldLabel>Stats</FieldLabel>
+        {data.stats.map((stat, i) => (
+          <div key={i} className="flex gap-2 items-center">
+            <Input
+              value={stat.label}
+              onChange={(e) => updateStat(i, "label", e.target.value)}
+              placeholder="Label"
+              className="h-8 text-sm"
+            />
+            <Input
+              value={stat.value}
+              onChange={(e) => updateStat(i, "value", e.target.value)}
+              placeholder="Value"
+              className="h-8 text-sm"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => removeStat(i)}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        ))}
+        <Button variant="outline" size="sm" onClick={addStat}>
+          <Plus className="h-3 w-3 mr-1" /> Add Stat
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function CardGridEditor({
+  data,
+  onChange,
+}: {
+  data: CardGridBlock["data"];
+  onChange: (data: CardGridBlock["data"]) => void;
+}) {
+  function updateCard(index: number, card: (typeof data.cards)[0]) {
+    const next = [...data.cards];
+    next[index] = card;
+    onChange({ ...data, cards: next });
+  }
+
+  function addCard() {
+    onChange({
+      ...data,
+      cards: [
+        ...data.cards,
+        { icon: "Info", iconColor: "blue", title: "", description: "" },
+      ],
+    });
+  }
+
+  function removeCard(index: number) {
+    onChange({ ...data, cards: data.cards.filter((_, i) => i !== index) });
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <FieldLabel>Heading (optional)</FieldLabel>
+          <Input
+            value={data.heading || ""}
+            onChange={(e) => onChange({ ...data, heading: e.target.value })}
+            placeholder="Section heading"
+          />
+        </div>
+        <div className="space-y-1">
+          <FieldLabel>Columns</FieldLabel>
+          <div className="flex gap-2">
+            {[2, 3].map((n) => (
+              <button
+                key={n}
+                onClick={() => onChange({ ...data, columns: n })}
+                className={cn(
+                  "px-3 py-1.5 text-xs rounded-md border transition-colors",
+                  (data.columns || 3) === n
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "hover:bg-muted"
+                )}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <FieldLabel>Cards</FieldLabel>
+        {data.cards.map((card, i) => (
+          <Card key={i} className="p-3">
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="space-y-1">
+                <FieldLabel>Icon</FieldLabel>
+                <IconSelect
+                  value={card.icon}
+                  onChange={(icon) => updateCard(i, { ...card, icon })}
+                />
+              </div>
+              <div className="space-y-1">
+                <FieldLabel>Color</FieldLabel>
+                <ColorSelect
+                  value={card.iconColor}
+                  onChange={(iconColor) =>
+                    updateCard(i, { ...card, iconColor })
+                  }
+                />
+              </div>
+            </div>
+            <div className="space-y-1 mb-2">
+              <FieldLabel>Title</FieldLabel>
+              <Input
+                value={card.title}
+                onChange={(e) =>
+                  updateCard(i, { ...card, title: e.target.value })
+                }
+                placeholder="Card title"
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <FieldLabel>Description</FieldLabel>
+              <Input
+                value={card.description}
+                onChange={(e) =>
+                  updateCard(i, { ...card, description: e.target.value })
+                }
+                placeholder="Card description"
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="flex justify-end mt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-destructive hover:text-destructive"
+                onClick={() => removeCard(i)}
+              >
+                <Trash2 className="h-3 w-3 mr-1" /> Remove
+              </Button>
+            </div>
+          </Card>
+        ))}
+        <Button variant="outline" size="sm" onClick={addCard}>
+          <Plus className="h-3 w-3 mr-1" /> Add Card
+        </Button>
       </div>
     </div>
   );

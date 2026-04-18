@@ -74,9 +74,35 @@ export type ResourceGridBlock = {
     columns?: number;
     resources: Array<{
       icon?: string;
+      iconColor?: string;
       title: string;
       description: string;
       url: string;
+    }>;
+  };
+};
+
+export type StatsGridBlock = {
+  type: "statsGrid";
+  data: {
+    columns?: number;
+    stats: Array<{
+      label: string;
+      value: string;
+    }>;
+  };
+};
+
+export type CardGridBlock = {
+  type: "cardGrid";
+  data: {
+    columns?: number;
+    heading?: string;
+    cards: Array<{
+      icon?: string;
+      iconColor?: string;
+      title: string;
+      description: string;
     }>;
   };
 };
@@ -89,7 +115,9 @@ export type ContentBlock =
   | ContactGridBlock
   | StepsCardBlock
   | CtaBannerBlock
-  | ResourceGridBlock;
+  | ResourceGridBlock
+  | StatsGridBlock
+  | CardGridBlock;
 
 export type BlockContent = { blocks: ContentBlock[] };
 export type LegacyContent = { html: string };
@@ -144,6 +172,14 @@ export const BLOCK_TYPE_META: Record<
   resourceGrid: {
     label: "Resource Grid",
     description: "Grid of linked resource cards",
+  },
+  statsGrid: {
+    label: "Stats Grid",
+    description: "Grid of small stat cards with label and value",
+  },
+  cardGrid: {
+    label: "Card Grid",
+    description: "Grid of info cards with icon, title, and description",
   },
 };
 
@@ -234,5 +270,9 @@ export function createDefaultBlock(type: ContentBlock["type"]): ContentBlock {
       return { type, data: { title: "", text: "", variant: "dark" } };
     case "resourceGrid":
       return { type, data: { columns: 3, resources: [] } };
+    case "statsGrid":
+      return { type, data: { columns: 3, stats: [] } };
+    case "cardGrid":
+      return { type, data: { columns: 3, cards: [] } };
   }
 }
