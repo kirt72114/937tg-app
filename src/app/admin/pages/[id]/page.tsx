@@ -6,14 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { BlockEditor } from "@/components/admin/block-editor";
 import { ArrowLeft, Save, Eye, Globe } from "lucide-react";
 import Link from "next/link";
-import {
-  getPageById,
-  createPage,
-  updatePage,
-} from "@/lib/actions/pages";
+import { getPageById, createPage, updatePage } from "@/lib/actions/pages";
+import { isBlockContent, type ContentBlock } from "@/lib/block-types";
 import type { PageType } from "@prisma/client";
 
 const selectClasses =
@@ -39,7 +36,7 @@ export default function AdminPageEditorPage() {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
-  const [content, setContent] = useState("");
+  const [blocks, setBlocks] = useState<ContentBlock[]>([]);
   const [pageType, setPageType] = useState<PageType>("dynamic");
   const [externalUrl, setExternalUrl] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
@@ -61,13 +58,16 @@ export default function AdminPageEditorPage() {
         setTitle(page.title);
         setSlug(page.slug);
         setSlugManuallyEdited(true);
-        setContent(
+        if (isBlockContent(page.content)) {
+          setBlocks(page.content.blocks as ContentBlock[]);
+        } else if (
           typeof page.content === "object" &&
-            page.content !== null &&
-            "html" in page.content
-            ? String((page.content as { html: string }).html)
-            : ""
-        );
+          page.content !== null &&
+          "html" in page.content
+        ) {
+          const html = String((page.content as { html: string }).html);
+          setBlocks(html ? [{ type: "richText", data: { html } }] : []);
+        }
         setPageType(page.pageType);
         setExternalUrl(page.externalUrl || "");
         setMetaDescription(page.metaDescription || "");
@@ -109,11 +109,12 @@ export default function AdminPageEditorPage() {
     setSaving(true);
 
     try {
+      const contentPayload = { blocks };
       if (isNew) {
         const page = await createPage({
           title,
           slug,
-          content: content || undefined,
+          content: contentPayload,
           metaDescription: metaDescription || undefined,
           pageType,
           externalUrl: externalUrl || undefined,
@@ -124,7 +125,7 @@ export default function AdminPageEditorPage() {
         await updatePage(pageId, {
           title,
           slug,
-          content,
+          content: contentPayload,
           metaDescription,
           pageType,
           externalUrl: externalUrl || undefined,
@@ -201,12 +202,8 @@ export default function AdminPageEditorPage() {
               </div>
               {pageType !== "external_link" && (
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Content</label>
-                  <RichTextEditor
-                    content={content}
-                    onChange={setContent}
-                    placeholder="Write your page content here..."
-                  />
+                  <label className="text-sm font-medium">Content Blocks</label>
+                  <BlockEditor blocks={blocks} onChange={setBlocks} />
                 </div>
               )}
               {pageType === "external_link" && (
@@ -218,7 +215,8 @@ export default function AdminPageEditorPage() {
                     placeholder="https://example.com"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Users visiting this page will be redirected to the external URL.
+                    Users visiting this page will be redirected to the external
+                    URL.
                   </p>
                 </div>
               )}

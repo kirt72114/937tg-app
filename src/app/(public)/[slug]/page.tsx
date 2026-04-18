@@ -1,7 +1,9 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
+import { BlockRenderer } from "@/components/blocks/block-renderer";
 import { getPageBySlug, getPublishedPages } from "@/lib/actions/pages";
+import { isBlockContent, isLegacyContent } from "@/lib/block-types";
 
 export async function generateMetadata({
   params,
@@ -40,10 +42,21 @@ export default async function DynamicPage({
     redirect(page.externalUrl);
   }
 
-  const html =
-    page.content && typeof page.content === "object" && "html" in page.content
-      ? String((page.content as { html?: unknown }).html ?? "")
-      : "";
+  const content = page.content;
+
+  if (isBlockContent(content)) {
+    return (
+      <div>
+        <PageHeader
+          title={page.title}
+          description={page.metaDescription ?? undefined}
+        />
+        <BlockRenderer blocks={content.blocks} />
+      </div>
+    );
+  }
+
+  const html = isLegacyContent(content) ? content.html : "";
 
   return (
     <div>

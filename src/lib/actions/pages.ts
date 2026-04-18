@@ -29,7 +29,7 @@ export async function getPageById(id: string) {
 export async function createPage(data: {
   title: string;
   slug: string;
-  content?: string;
+  content?: string | object;
   metaDescription?: string;
   pageType?: PageType;
   externalUrl?: string;
@@ -37,10 +37,20 @@ export async function createPage(data: {
   createdBy?: string;
 }) {
   const maxOrder = await prisma.page.aggregate({ _max: { sortOrder: true } });
+  const contentValue =
+    typeof data.content === "string"
+      ? { html: data.content }
+      : data.content ?? undefined;
   const page = await prisma.page.create({
     data: {
-      ...data,
-      content: data.content ? { html: data.content } : undefined,
+      title: data.title,
+      slug: data.slug,
+      content: contentValue,
+      metaDescription: data.metaDescription,
+      pageType: data.pageType,
+      externalUrl: data.externalUrl,
+      isPublished: data.isPublished,
+      createdBy: data.createdBy,
       sortOrder: (maxOrder._max.sortOrder ?? 0) + 1,
     },
   });
@@ -54,18 +64,29 @@ export async function updatePage(
   data: {
     title?: string;
     slug?: string;
-    content?: string;
+    content?: string | object;
     metaDescription?: string;
     pageType?: PageType;
     externalUrl?: string;
     isPublished?: boolean;
   }
 ) {
+  const contentValue =
+    data.content === undefined
+      ? undefined
+      : typeof data.content === "string"
+        ? { html: data.content }
+        : data.content;
   const page = await prisma.page.update({
     where: { id },
     data: {
-      ...data,
-      content: data.content !== undefined ? { html: data.content } : undefined,
+      title: data.title,
+      slug: data.slug,
+      content: contentValue,
+      metaDescription: data.metaDescription,
+      pageType: data.pageType,
+      externalUrl: data.externalUrl,
+      isPublished: data.isPublished,
     },
   });
   revalidatePath("/admin/pages");
