@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
 import { ChevronRight, Link as LinkIcon } from "lucide-react";
-import { getAllCollections, RESERVED_SLUGS } from "@/lib/actions/links";
+import { getAllCollections } from "@/lib/actions/links";
+import { RESERVED_SLUGS } from "@/lib/links-constants";
 
 export const metadata: Metadata = {
   title: "Links",

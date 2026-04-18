@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { FOOTER_SLUGS, HOME_SLUGS } from "@/lib/links-constants";
 
 export async function getAllCollections() {
   return prisma.linkCollection.findMany({
@@ -145,23 +146,6 @@ export async function deleteLinkItem(id: string) {
 
 // ─── Reserved Collections ─────────────────────────────
 
-export const FOOTER_SLUGS = {
-  quick: "footer-quick",
-  resources: "footer-resources",
-} as const;
-
-export const HOME_SLUGS = {
-  quick: "home-quick",
-  resources: "home-resources",
-} as const;
-
-export const RESERVED_SLUGS = new Set<string>([
-  FOOTER_SLUGS.quick,
-  FOOTER_SLUGS.resources,
-  HOME_SLUGS.quick,
-  HOME_SLUGS.resources,
-]);
-
 const RESERVED_DEFAULTS: {
   slug: string;
   title: string;
@@ -264,9 +248,6 @@ export async function seedReservedCollections() {
   revalidatePath("/", "layout");
   return { collectionsAdded, itemsAdded };
 }
-
-/** @deprecated use seedReservedCollections */
-export const seedFooterCollections = seedReservedCollections;
 
 export async function reorderLinkItem(id: string, direction: "up" | "down") {
   const current = await prisma.linkItem.findUnique({ where: { id } });

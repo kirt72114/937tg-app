@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/constants";
-import { getCollectionBySlug, FOOTER_SLUGS } from "@/lib/actions/links";
+import { getCollectionBySlug } from "@/lib/actions/links";
+import { FOOTER_SLUGS } from "@/lib/links-constants";
 
 const QUICK_LINKS_FALLBACK = {
   title: "Quick Links",

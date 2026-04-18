@@ -26,10 +26,12 @@ import {
   deleteLinkItem,
   reorderLinkItem,
   seedReservedCollections,
+} from "@/lib/actions/links";
+import {
   RESERVED_SLUGS,
   FOOTER_SLUGS,
   HOME_SLUGS,
-} from "@/lib/actions/links";
+} from "@/lib/links-constants";
 
 type Collection = {
   id: string;

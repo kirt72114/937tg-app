@@ -37,7 +37,8 @@ import { Button } from "@/components/ui/button";
 import { AnnouncementCard } from "@/components/shared/announcement-card";
 import { SITE_CONFIG } from "@/lib/constants";
 import { getActiveAnnouncements } from "@/lib/actions/announcements";
-import { getCollectionBySlug, HOME_SLUGS } from "@/lib/actions/links";
+import { getCollectionBySlug } from "@/lib/actions/links";
+import { HOME_SLUGS } from "@/lib/links-constants";
 import { getAllSettings } from "@/lib/actions/settings";
 
 export const dynamic = "force-dynamic";

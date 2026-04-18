@@ -39,8 +39,8 @@ import {
 import {
   getCollectionBySlug,
   getAllCollectionSlugs,
-  RESERVED_SLUGS,
 } from "@/lib/actions/links";
+import { RESERVED_SLUGS } from "@/lib/links-constants";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Globe,
