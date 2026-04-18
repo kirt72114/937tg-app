@@ -219,6 +219,28 @@ function getBlockSummary(block: ContentBlock): string {
       return `${block.data.stats.length} stats`;
     case "cardGrid":
       return `${block.data.heading ? block.data.heading + " — " : ""}${block.data.cards.length} cards`;
+    case "ropePrograms":
+      return "Live data from Rope Programs admin";
+    case "scheduleDisplay":
+      return `Live schedule (${block.data.scheduleType})`;
+    case "afscGrid":
+      return "Live data from AFSCs admin";
+    case "leadershipDisplay":
+      return "Live data from Leadership admin";
+    case "mtlGrid":
+      return "Live data from MTL profiles";
+    case "phoneDirectory":
+      return "Live data from Contacts admin";
+    case "locationGrid":
+      return "Live data from Locations admin";
+    case "linkCollections":
+      return "Live data from Links admin";
+    case "fileGrid":
+      return "Live data from Files admin";
+    case "workOrderForm":
+      return "Interactive work order form";
+    case "shareWidget":
+      return "App share widget";
   }
 }
 
@@ -256,6 +278,44 @@ function BlockTypeEditor({
       return <StatsGridEditor data={block.data} onChange={(data) => onChange({ type: "statsGrid", data })} />;
     case "cardGrid":
       return <CardGridEditor data={block.data} onChange={(data) => onChange({ type: "cardGrid", data })} />;
+    case "scheduleDisplay":
+      return (
+        <div className="space-y-2">
+          <label className="text-xs font-medium">Schedule Type</label>
+          <select
+            value={block.data.scheduleType}
+            onChange={(e) =>
+              onChange({
+                type: "scheduleDisplay",
+                data: { scheduleType: e.target.value as "dfac" | "shuttle" },
+              })
+            }
+            className={selectClasses}
+          >
+            <option value="dfac">DFAC Hours</option>
+            <option value="shuttle">Shuttle Route</option>
+          </select>
+          <p className="text-xs text-muted-foreground">
+            Renders live data from the Schedules admin section.
+          </p>
+        </div>
+      );
+    case "ropePrograms":
+    case "afscGrid":
+    case "leadershipDisplay":
+    case "mtlGrid":
+    case "phoneDirectory":
+    case "locationGrid":
+    case "linkCollections":
+    case "fileGrid":
+    case "workOrderForm":
+    case "shareWidget":
+      return (
+        <p className="text-xs text-muted-foreground">
+          This block renders live content — manage its data in the corresponding
+          admin section. No configuration needed here.
+        </p>
+      );
   }
 }
 

@@ -916,6 +916,180 @@ const metc: DefaultPageSeed = {
   ],
 };
 
+const leadershipPrograms: DefaultPageSeed = {
+  slug: "leadership-programs",
+  title: "Airman Leadership Programs",
+  metaDescription:
+    "Student leadership opportunities through the Rope Program at the 937th Training Group.",
+  blocks: [
+    {
+      type: "infoCard",
+      data: {
+        icon: "Award",
+        iconColor: "blue",
+        title: "The Rope Program",
+        text: "The Rope Program provides Airmen in Training with the opportunity to develop leadership skills while serving their peers. Student leaders wear colored rope aiguillettes on their uniform to signify their position. Each level carries increasing responsibility and is an excellent way to distinguish yourself during technical training.",
+      },
+    },
+    { type: "ropePrograms", data: {} },
+    {
+      type: "ctaBanner",
+      data: {
+        title: "Interested in Becoming a Rope?",
+        text: "Speak with your MTL about eligibility and the application process. Leadership starts with stepping up — your MTL can guide you through the requirements and help you begin your leadership journey.",
+        variant: "dark",
+      },
+    },
+  ],
+};
+
+const dfacHours: DefaultPageSeed = {
+  slug: "dfac-hours",
+  title: "DFAC Hours",
+  metaDescription: "Rocco Dining Facility meal schedule and information.",
+  blocks: [
+    {
+      type: "infoCard",
+      data: {
+        icon: "Coffee",
+        iconColor: "amber",
+        title: "Rocco Dining Facility",
+        text: "Building 2846, Fort Sam Houston. Meal card required for entry. All AiT students are authorized to eat at the DFAC during posted meal times.",
+      },
+    },
+    { type: "scheduleDisplay", data: { scheduleType: "dfac" } },
+    {
+      type: "callout",
+      data: {
+        variant: "warning",
+        title: "Note",
+        text: "Hours are subject to change for holidays, training exercises, or special events. Check with your MTL or the DFAC directly for the most current schedule.",
+      },
+    },
+  ],
+};
+
+const shuttle: DefaultPageSeed = {
+  slug: "shuttle",
+  title: "Shuttle Route",
+  metaDescription:
+    "Base shuttle schedule and route information for JBSA-Fort Sam Houston.",
+  blocks: [
+    { type: "scheduleDisplay", data: { scheduleType: "shuttle" } },
+    {
+      type: "callout",
+      data: {
+        variant: "warning",
+        title: "Note",
+        text: "Shuttle service may be reduced or suspended during holidays, inclement weather, or special events. Always have a backup plan for transportation to training.",
+      },
+    },
+  ],
+};
+
+const afscs: DefaultPageSeed = {
+  slug: "afscs",
+  title: "Air Force Specialty Codes (AFSCs)",
+  metaDescription: "Medical AFSCs trained at the 937th Training Group and METC.",
+  blocks: [
+    {
+      type: "infoCard",
+      data: {
+        icon: "GraduationCap",
+        iconColor: "blue",
+        title: "Medical Training Programs",
+        text: "The 937th Training Group oversees Air Force students attending medical technical training at METC. Below are the primary AFSCs trained here. Training durations are approximate and subject to change.",
+      },
+    },
+    { type: "afscGrid", data: {} },
+  ],
+};
+
+const leadership: DefaultPageSeed = {
+  slug: "leadership",
+  title: "Meet Your Leadership",
+  metaDescription:
+    "The command team of the 937th Training Group at JBSA-Fort Sam Houston.",
+  blocks: [{ type: "leadershipDisplay", data: {} }],
+};
+
+const locations: DefaultPageSeed = {
+  slug: "locations",
+  title: "Locations",
+  metaDescription:
+    "Key locations on and around JBSA-Fort Sam Houston for 937 TG personnel.",
+  blocks: [{ type: "locationGrid", data: {} }],
+};
+
+const mtls: DefaultPageSeed = {
+  slug: "mtls",
+  title: "Meet Your MTLs",
+  metaDescription:
+    "Military Training Leaders are the NCOs dedicated to mentoring and developing Airmen in Training.",
+  blocks: [
+    {
+      type: "cardGrid",
+      data: {
+        columns: 2,
+        cards: [
+          {
+            icon: "Users",
+            iconColor: "blue",
+            title: "What is an MTL?",
+            description:
+              "Military Training Leaders (MTLs) are experienced Non-Commissioned Officers assigned to supervise Airmen in Training (AiT) in their dormitories. They serve as mentors, role models, and the first line of support for students throughout their technical training journey.",
+          },
+          {
+            icon: "Target",
+            iconColor: "amber",
+            title: "MTL Mission",
+            description:
+              "Our MTLs are dedicated to mentoring, training, and developing the next generation of Warrior Medics. They ensure a safe, disciplined, and professional living environment while fostering personal growth and military readiness in every student.",
+          },
+        ],
+      },
+    },
+    { type: "mtlGrid", data: {} },
+  ],
+};
+
+const phoneNumbers: DefaultPageSeed = {
+  slug: "phone-numbers",
+  title: "Important Phone Numbers",
+  metaDescription:
+    "Find contact information for key offices and services. Tap any number to call.",
+  blocks: [{ type: "phoneDirectory", data: {} }],
+};
+
+const links: DefaultPageSeed = {
+  slug: "links",
+  title: "Links",
+  metaDescription: "Curated link collections and external resources.",
+  blocks: [{ type: "linkCollections", data: {} }],
+};
+
+const files: DefaultPageSeed = {
+  slug: "files",
+  title: "Files & Downloads",
+  metaDescription: "Documents, forms, and resources uploaded by admin staff.",
+  blocks: [{ type: "fileGrid", data: {} }],
+};
+
+const workOrders: DefaultPageSeed = {
+  slug: "work-orders",
+  title: "Submit a Work Order",
+  metaDescription:
+    "Report maintenance issues in dormitories or facilities. You'll receive a reference number to track your request.",
+  blocks: [{ type: "workOrderForm", data: {} }],
+};
+
+const share: DefaultPageSeed = {
+  slug: "share",
+  title: "Share This App",
+  metaDescription: "Share the 937th Training Group app with your fellow Airmen.",
+  blocks: [{ type: "shareWidget", data: {} }],
+};
+
 export const DEFAULT_PAGES: DefaultPageSeed[] = [
   aitGuide,
   inProcessing,
@@ -929,4 +1103,16 @@ export const DEFAULT_PAGES: DefaultPageSeed[] = [
   jbsaConnect,
   militaryOneSource,
   metc,
+  leadershipPrograms,
+  dfacHours,
+  shuttle,
+  afscs,
+  leadership,
+  locations,
+  mtls,
+  phoneNumbers,
+  links,
+  files,
+  workOrders,
+  share,
 ];

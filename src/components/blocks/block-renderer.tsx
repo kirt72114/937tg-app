@@ -12,8 +12,22 @@ import {
   type ResourceGridBlock,
   type StatsGridBlock,
   type CardGridBlock,
+  type ScheduleDisplayBlock,
   getColorClasses,
 } from "@/lib/block-types";
+import {
+  RopeProgramsRenderer,
+  AfscGridRenderer,
+  LocationGridRenderer,
+  FileGridRenderer,
+  LinkCollectionsRenderer,
+  ScheduleDisplayRenderer,
+  MtlGridRenderer,
+  PhoneDirectoryRenderer,
+  ShareWidgetRenderer,
+  WorkOrderFormRenderer,
+  LeadershipDisplayRenderer,
+} from "@/components/blocks/data-blocks";
 import { getIcon } from "@/lib/block-icons";
 import {
   CheckCircle2,
@@ -61,6 +75,32 @@ function BlockItem({ block }: { block: ContentBlock }) {
       return <StatsGridRenderer data={block.data} />;
     case "cardGrid":
       return <CardGridRenderer data={block.data} />;
+    case "ropePrograms":
+      return <RopeProgramsRenderer />;
+    case "scheduleDisplay":
+      return (
+        <ScheduleDisplayRenderer
+          scheduleType={(block.data as ScheduleDisplayBlock["data"]).scheduleType}
+        />
+      );
+    case "afscGrid":
+      return <AfscGridRenderer />;
+    case "leadershipDisplay":
+      return <LeadershipDisplayRenderer />;
+    case "mtlGrid":
+      return <MtlGridRenderer />;
+    case "phoneDirectory":
+      return <PhoneDirectoryRenderer />;
+    case "locationGrid":
+      return <LocationGridRenderer />;
+    case "linkCollections":
+      return <LinkCollectionsRenderer />;
+    case "fileGrid":
+      return <FileGridRenderer />;
+    case "workOrderForm":
+      return <WorkOrderFormRenderer />;
+    case "shareWidget":
+      return <ShareWidgetRenderer />;
     default:
       return null;
   }

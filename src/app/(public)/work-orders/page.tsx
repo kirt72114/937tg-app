@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { PageHeader } from "@/components/shared/page-header";
-import { WorkOrderForm } from "./work-order-form";
+import { WorkOrderForm } from "@/components/shared/work-order-form";
 
 export const metadata: Metadata = {
   title: "Submit a Work Order",

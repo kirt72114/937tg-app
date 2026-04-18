@@ -107,6 +107,61 @@ export type CardGridBlock = {
   };
 };
 
+export type RopeProgramsBlock = {
+  type: "ropePrograms";
+  data: Record<string, never>;
+};
+
+export type ScheduleDisplayBlock = {
+  type: "scheduleDisplay";
+  data: { scheduleType: "dfac" | "shuttle" };
+};
+
+export type AfscGridBlock = {
+  type: "afscGrid";
+  data: Record<string, never>;
+};
+
+export type LeadershipDisplayBlock = {
+  type: "leadershipDisplay";
+  data: Record<string, never>;
+};
+
+export type MtlGridBlock = {
+  type: "mtlGrid";
+  data: Record<string, never>;
+};
+
+export type PhoneDirectoryBlock = {
+  type: "phoneDirectory";
+  data: Record<string, never>;
+};
+
+export type LocationGridBlock = {
+  type: "locationGrid";
+  data: Record<string, never>;
+};
+
+export type LinkCollectionsBlock = {
+  type: "linkCollections";
+  data: Record<string, never>;
+};
+
+export type FileGridBlock = {
+  type: "fileGrid";
+  data: Record<string, never>;
+};
+
+export type WorkOrderFormBlock = {
+  type: "workOrderForm";
+  data: Record<string, never>;
+};
+
+export type ShareWidgetBlock = {
+  type: "shareWidget";
+  data: Record<string, never>;
+};
+
 export type ContentBlock =
   | RichTextBlock
   | InfoCardBlock
@@ -117,7 +172,18 @@ export type ContentBlock =
   | CtaBannerBlock
   | ResourceGridBlock
   | StatsGridBlock
-  | CardGridBlock;
+  | CardGridBlock
+  | RopeProgramsBlock
+  | ScheduleDisplayBlock
+  | AfscGridBlock
+  | LeadershipDisplayBlock
+  | MtlGridBlock
+  | PhoneDirectoryBlock
+  | LocationGridBlock
+  | LinkCollectionsBlock
+  | FileGridBlock
+  | WorkOrderFormBlock
+  | ShareWidgetBlock;
 
 export type BlockContent = { blocks: ContentBlock[] };
 export type LegacyContent = { html: string };
@@ -180,6 +246,50 @@ export const BLOCK_TYPE_META: Record<
   cardGrid: {
     label: "Card Grid",
     description: "Grid of info cards with icon, title, and description",
+  },
+  ropePrograms: {
+    label: "Rope Programs",
+    description: "Live data from Rope Programs admin",
+  },
+  scheduleDisplay: {
+    label: "Schedule Display",
+    description: "Live data from Schedules admin (DFAC or Shuttle)",
+  },
+  afscGrid: {
+    label: "AFSC Grid",
+    description: "Live data from AFSCs admin",
+  },
+  leadershipDisplay: {
+    label: "Leadership Display",
+    description: "Live data from Leadership admin",
+  },
+  mtlGrid: {
+    label: "MTL Grid",
+    description: "Live data from MTL profiles admin",
+  },
+  phoneDirectory: {
+    label: "Phone Directory",
+    description: "Live data from Contacts admin with search",
+  },
+  locationGrid: {
+    label: "Location Grid",
+    description: "Live data from Locations admin",
+  },
+  linkCollections: {
+    label: "Link Collections",
+    description: "Live data from Links admin",
+  },
+  fileGrid: {
+    label: "File Grid",
+    description: "Live data from Files admin",
+  },
+  workOrderForm: {
+    label: "Work Order Form",
+    description: "Interactive work order submission form",
+  },
+  shareWidget: {
+    label: "Share Widget",
+    description: "App sharing widget with copy link and QR code",
   },
 };
 
@@ -274,5 +384,27 @@ export function createDefaultBlock(type: ContentBlock["type"]): ContentBlock {
       return { type, data: { columns: 3, stats: [] } };
     case "cardGrid":
       return { type, data: { columns: 3, cards: [] } };
+    case "ropePrograms":
+      return { type, data: {} } as ContentBlock;
+    case "afscGrid":
+      return { type, data: {} } as ContentBlock;
+    case "leadershipDisplay":
+      return { type, data: {} } as ContentBlock;
+    case "mtlGrid":
+      return { type, data: {} } as ContentBlock;
+    case "phoneDirectory":
+      return { type, data: {} } as ContentBlock;
+    case "locationGrid":
+      return { type, data: {} } as ContentBlock;
+    case "linkCollections":
+      return { type, data: {} } as ContentBlock;
+    case "fileGrid":
+      return { type, data: {} } as ContentBlock;
+    case "workOrderForm":
+      return { type, data: {} } as ContentBlock;
+    case "shareWidget":
+      return { type, data: {} } as ContentBlock;
+    case "scheduleDisplay":
+      return { type, data: { scheduleType: "dfac" } };
   }
 }

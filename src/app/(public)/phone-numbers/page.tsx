@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { PageHeader } from "@/components/shared/page-header";
-import { PhoneDirectory } from "./phone-directory";
+import { PhoneDirectory } from "@/components/shared/phone-directory";
 import { getContacts } from "@/lib/actions/contacts";
 
 export const dynamic = "force-dynamic";
