@@ -12,6 +12,7 @@ import {
   createContact,
   updateContact,
   deleteContact,
+  reorderContact,
 } from "@/lib/actions/contacts";
 
 type Contact = {
@@ -159,6 +160,11 @@ export default function AdminContactsPage() {
     }
   }
 
+  async function handleMove(item: Contact, direction: "up" | "down") {
+    await reorderContact(item.id, direction);
+    await loadData();
+  }
+
   async function handleDelete(item: Contact) {
     if (!confirm(`Delete "${item.name}"?`)) return;
     await deleteContact(item.id);
@@ -289,6 +295,8 @@ export default function AdminContactsPage() {
         data={filtered}
         onEdit={openEdit}
         onDelete={handleDelete}
+        onMoveUp={search ? undefined : (item) => handleMove(item, "up")}
+        onMoveDown={search ? undefined : (item) => handleMove(item, "down")}
       />
     </div>
   );

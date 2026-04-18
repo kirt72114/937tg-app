@@ -30,6 +30,10 @@ import {
   ShieldAlert,
   Link as LinkIcon,
   Share2,
+  FileText,
+  Calendar,
+  Star,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,6 +46,13 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { SITE_CONFIG, NAV_ITEMS } from "@/lib/constants";
+
+export type NavItemData = {
+  label: string;
+  href: string;
+  icon: string | null;
+  section: string;
+};
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Home,
@@ -69,11 +80,34 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   ShieldAlert,
   Link: LinkIcon,
   Share2,
+  FileText,
+  Calendar,
+  Star,
+  Info,
 };
 
-export function Header() {
+function toNavItems(items: readonly { label: string; href: string; icon: string }[]): NavItemData[] {
+  return items.map((i) => ({ label: i.label, href: i.href, icon: i.icon, section: "primary" }));
+}
+
+export function Header({
+  navItems,
+  settings,
+}: {
+  navItems?: NavItemData[];
+  settings?: Record<string, string>;
+}) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+
+  const siteName = settings?.siteName || SITE_CONFIG.name;
+
+  const primaryItems = navItems
+    ? navItems.filter((i) => i.section === "primary")
+    : toNavItems(NAV_ITEMS.primary);
+  const moreItems = navItems
+    ? navItems.filter((i) => i.section === "more")
+    : toNavItems(NAV_ITEMS.more);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-military-navy text-white">
@@ -89,18 +123,18 @@ export function Header() {
           />
           <div className="hidden sm:block">
             <div className="text-sm font-bold leading-tight">
-              {SITE_CONFIG.name}
+              {siteName}
             </div>
             <div className="text-xs text-gray-300">
-              {SITE_CONFIG.branch}
+              {settings?.branch || SITE_CONFIG.branch}
             </div>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-1">
-          {NAV_ITEMS.primary.slice(0, 7).map((item) => {
-            const Icon = iconMap[item.icon];
+          {primaryItems.slice(0, 7).map((item) => {
+            const Icon = item.icon ? iconMap[item.icon] : null;
             return (
               <Link
                 key={item.href}
@@ -132,9 +166,9 @@ export function Header() {
                 />
                 <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border bg-white text-foreground shadow-lg">
                   <div className="p-2">
-                    {[...NAV_ITEMS.primary.slice(7), ...NAV_ITEMS.more].map(
+                    {[...primaryItems.slice(7), ...moreItems].map(
                       (item) => {
-                        const Icon = iconMap[item.icon];
+                        const Icon = item.icon ? iconMap[item.icon] : null;
                         return (
                           <Link
                             key={item.href}
@@ -176,9 +210,9 @@ export function Header() {
                   className="h-10 w-10 object-contain"
                 />
                 <div>
-                  <div className="text-sm font-bold">{SITE_CONFIG.shortName}</div>
+                  <div className="text-sm font-bold">{settings?.shortName || SITE_CONFIG.shortName}</div>
                   <div className="text-xs text-gray-300 font-normal">
-                    {SITE_CONFIG.branch}
+                    {settings?.branch || SITE_CONFIG.branch}
                   </div>
                 </div>
               </SheetTitle>
@@ -188,8 +222,8 @@ export function Header() {
                 <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 px-3">
                   Main Menu
                 </div>
-                {NAV_ITEMS.primary.map((item) => {
-                  const Icon = iconMap[item.icon];
+                {primaryItems.map((item) => {
+                  const Icon = item.icon ? iconMap[item.icon] : null;
                   return (
                     <Link
                       key={item.href}
@@ -203,25 +237,28 @@ export function Header() {
                   );
                 })}
 
-                <Separator className="my-4 bg-military-blue" />
-
-                <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 px-3">
-                  More Resources
-                </div>
-                {NAV_ITEMS.more.map((item) => {
-                  const Icon = iconMap[item.icon];
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-gray-200 hover:bg-military-blue hover:text-white transition-colors"
-                    >
-                      {Icon && <Icon className="h-4 w-4 text-military-gold" />}
-                      {item.label}
-                    </Link>
-                  );
-                })}
+                {moreItems.length > 0 && (
+                  <>
+                    <Separator className="my-4 bg-military-blue" />
+                    <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2 px-3">
+                      More Resources
+                    </div>
+                    {moreItems.map((item) => {
+                      const Icon = item.icon ? iconMap[item.icon] : null;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMobileOpen(false)}
+                          className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-gray-200 hover:bg-military-blue hover:text-white transition-colors"
+                        >
+                          {Icon && <Icon className="h-4 w-4 text-military-gold" />}
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </>
+                )}
               </div>
             </ScrollArea>
           </SheetContent>

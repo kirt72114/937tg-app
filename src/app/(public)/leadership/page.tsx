@@ -1,179 +1,74 @@
 import { Metadata } from "next";
 import { PageHeader } from "@/components/shared/page-header";
+import { prisma } from "@/lib/prisma";
+import { getAllSquadrons } from "@/lib/actions/squadrons";
+import { getAllSettings } from "@/lib/actions/settings";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Meet Your Leadership",
 };
 
-const GROUP_LEADERSHIP = {
-  name: "937th Training Group",
-  subtitle: "Medical Education & Training Campus (METC)",
-  location: "JBSA-Fort Sam Houston, TX",
-  description: `The 937th Training Group, headquartered at JBSA-Fort Sam Houston, Texas, is a crucial component of the 59th Medical Wing. The group is dedicated to providing world-class enlisted medical readiness training at the Medical Education and Training Campus.
-
-With a dedicated team of 601 active-duty and civilian professionals, the group bears the responsibility for preparing over 14,700 students annually across 82 programs of instruction spanning 64 distinct courses and components, covering 51 enlisted Air Force specialty codes.
-
-The group's mission extends to overseeing the completion of Phase II initial skills training for enlisted Air Force specialty codes and conducting officer clinical readiness training, ensuring personnel are ready to deliver healthcare in all settings and conditions.`,
-  commander: {
-    name: "Brian Caruthers",
-    rank: "Col",
-    title: "Commander",
-    photo: "/images/leadership/col-caruthers-brian.jpg",
-  },
-  leaders: [
-    {
-      name: "Mark Hassett",
-      rank: "Lt Col",
-      title: "Deputy Commander",
-      photo: "/images/leadership/ltcol-hassett-mark.jpg",
-    },
-    {
-      name: "James Keller",
-      rank: "CMSgt",
-      title: "Senior Enlisted Leader",
-      photo: null,
-    },
-  ],
+type Leader = {
+  id: string;
+  name: string;
+  rank: string;
+  title: string;
+  unit: string;
+  photoUrl: string | null;
 };
 
-const SQUADRONS = [
-  {
-    name: "381st Training Squadron",
-    motto: "Forge to Excellence and Commitment",
-    commander: {
-      name: "Heather Brooks",
-      rank: "Lt Col",
-      title: "Commander",
-      photo: "/images/leadership/ltcol-brooks-heather.jpg",
-    },
-    leaders: [
-      {
-        name: "Erica Gunderson",
-        rank: "Capt",
-        title: "Section Commander",
-        photo: "/images/leadership/capt-gunderson-erica.jpg",
-      },
-      {
-        name: "Justin Rhodes",
-        rank: "MSG",
-        title: "Senior Enlisted Leader",
-        photo: "/images/leadership/msg-rhodes-justin.jpg",
-      },
-      {
-        name: "Nathan Bentley",
-        rank: "MSgt",
-        title: "First Sergeant",
-        photo: "/images/leadership/msgt-bentley-nathan.png",
-      },
-    ],
-    mission: "To train and empower mission-essential medics.",
-    vision:
-      "An inclusive team, developing one medic at a time for the future fight.",
-    afscs: [
-      "4Y0X1 - Dental Assistant",
-      "4Y0X2 - Dental Laboratory",
-    ],
-  },
-  {
-    name: "382d Training Squadron",
-    motto: "Train Today's Medics for Tomorrow's Fight",
-    commander: {
-      name: "Christopher Dufford",
-      rank: "Lt Col",
-      title: "Commander",
-      photo: "/images/leadership/ltcol-dufford-christopher.jpg",
-    },
-    leaders: [
-      {
-        name: "Michael Mask",
-        rank: "Capt",
-        title: "Section Commander",
-        photo: "/images/leadership/capt-mask-michael.jpg",
-      },
-      {
-        name: "Veronica Everest",
-        rank: "CMSgt",
-        title: "Senior Enlisted Leader",
-        photo: "/images/leadership/cmsgt-everest-veronica.jpg",
-      },
-      {
-        name: "Stacey Williamson",
-        rank: "MSgt",
-        title: "First Sergeant",
-        photo: "/images/leadership/msgt-williamson-stacey.jpg",
-      },
-    ],
-    mission:
-      "Educate, develop, and inspire one enlisted medic at a time — ready to fight.",
-    vision: "To be the premier training pipeline for joint medical forces.",
-    afscs: [
-      "4A0X1 - Health Services Management",
-      "4A2X1 - Biomedical Equipment",
-      "4N0X2 - Physical Medicine",
-      "4P0X1 - Pharmacy",
-      "4H0X1 - Diagnostic Imaging",
-      "6A0X2 - Medical Materiel",
-      "4D0X1 - Diet Therapy",
-    ],
-  },
-  {
-    name: "383d Training Squadron",
-    motto: "METC's Finest, Mission Focused",
-    commander: {
-      name: "Tracy Davis",
-      rank: "Lt Col",
-      title: "Commander",
-      photo: "/images/leadership/ltcol-davis-tracy.png",
-    },
-    leaders: [
-      {
-        name: "Rubert Laco",
-        rank: "Maj",
-        title: "Section Commander",
-        photo: "/images/leadership/maj-laco-rubert.jpg",
-      },
-      {
-        name: "Fabrizio Lamarca",
-        rank: "CMSgt",
-        title: "Senior Enlisted Leader",
-        photo: null,
-      },
-      {
-        name: "James Kendall",
-        rank: "SMSgt",
-        title: "First Sergeant",
-        photo: "/images/leadership/smsgt-kendall-james.jpg",
-      },
-    ],
-    mission: "Develop Warrior Medics.",
-    vision: "Train. Inform. Transform.",
-    afscs: [
-      "4C0X1 - Mental Health Service",
-      "4H0X1 - Cardiopulmonary Laboratory",
-      "4N0X1 - Aerospace Medical Service",
-      "4Y0X1 - Surgical Service",
-    ],
-  },
+type Squadron = {
+  id: string;
+  unit: string;
+  motto: string | null;
+  mission: string | null;
+  vision: string | null;
+  afscs: unknown;
+};
+
+function squadronAfscs(value: unknown): string[] {
+  return Array.isArray(value) ? value.map(String) : [];
+}
+
+// Display order within a squadron — titles listed here appear first, in this order.
+const TITLE_ORDER = [
+  "Commander",
+  "Deputy Commander",
+  "Section Commander",
+  "Senior Enlisted Leader",
+  "First Sergeant",
 ];
+
+function orderLeaders(leaders: Leader[]): Leader[] {
+  return [...leaders].sort((a, b) => {
+    const ai = TITLE_ORDER.indexOf(a.title);
+    const bi = TITLE_ORDER.indexOf(b.title);
+    const aIndex = ai === -1 ? 999 : ai;
+    const bIndex = bi === -1 ? 999 : bi;
+    return aIndex - bIndex;
+  });
+}
 
 function LeaderPhoto({
   name,
   rank,
-  photo,
+  photoUrl,
   size = "sm",
 }: {
   name: string;
   rank: string;
-  photo: string | null;
+  photoUrl: string | null;
   size?: "lg" | "sm";
 }) {
   const dimensions =
     size === "lg" ? "h-64 w-52 md:h-80 md:w-64" : "h-28 w-24 md:h-36 md:w-28";
 
-  if (photo) {
+  if (photoUrl) {
     return (
       <img
-        src={photo}
+        src={photoUrl}
         alt={`${rank} ${name}`}
         className={`${dimensions} rounded object-cover object-top shadow-md`}
       />
@@ -197,151 +92,74 @@ function LeaderPhoto({
   );
 }
 
-function GroupSection() {
-  const { commander, leaders, description } = GROUP_LEADERSHIP;
+function GroupSection({
+  leaders,
+  groupUnit,
+  groupDescription,
+  location,
+}: {
+  leaders: Leader[];
+  groupUnit: string;
+  groupDescription: string;
+  location: string;
+}) {
+  const ordered = orderLeaders(leaders);
+  const commander = ordered.find((l) => l.title === "Commander");
+  const others = ordered.filter((l) => l.title !== "Commander");
 
   return (
     <section className="rounded-lg bg-military-navy text-white overflow-hidden">
       <div className="p-6 md:p-10">
-        {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <img
             src="/images/937Logo.png"
-            alt="937th Training Group Emblem"
+            alt={`${groupUnit} Emblem`}
             className="h-16 w-16 md:h-20 md:w-20 rounded-full bg-white p-1"
           />
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold">
-              {GROUP_LEADERSHIP.name}
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-bold">{groupUnit}</h2>
             <p className="text-sm text-gray-300">
-              {GROUP_LEADERSHIP.subtitle}
+              Medical Education &amp; Training Campus (METC)
             </p>
-            <p className="text-xs text-gray-400">
-              {GROUP_LEADERSHIP.location}
-            </p>
+            <p className="text-xs text-gray-400">{location}</p>
           </div>
         </div>
 
-        {/* Commander photo + info */}
-        <div className="flex flex-col md:flex-row gap-8">
-          <div className="flex flex-col items-center md:items-start">
-            <LeaderPhoto
-              name={commander.name}
-              rank={commander.rank}
-              photo={commander.photo}
-              size="lg"
-            />
-            {/* Other leaders photos */}
-            <div className="flex gap-3 mt-4">
-              {leaders.map((leader) => (
+        {leaders.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">
+            No leaders have been added yet. Visit the admin panel to add them.
+          </p>
+        ) : (
+          <div className="flex flex-col md:flex-row gap-8">
+            <div className="flex flex-col items-center md:items-start">
+              {commander && (
                 <LeaderPhoto
-                  key={leader.name}
-                  name={leader.name}
-                  rank={leader.rank}
-                  photo={leader.photo}
-                  size="sm"
+                  name={commander.name}
+                  rank={commander.rank}
+                  photoUrl={commander.photoUrl}
+                  size="lg"
                 />
-              ))}
-            </div>
-          </div>
-
-          <div className="flex-1 space-y-6">
-            {/* Leadership roster */}
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-military-gold">
-                  Commander
-                </p>
-                <p className="text-sm">
-                  {commander.rank} {commander.name}
-                </p>
-              </div>
-              {leaders.map((leader) => (
-                <div key={leader.name}>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-military-gold">
-                    {leader.title}
-                  </p>
-                  <p className="text-sm">
-                    {leader.rank} {leader.name}
-                  </p>
+              )}
+              {others.length > 0 && (
+                <div className="flex gap-3 mt-4 flex-wrap">
+                  {others.map((leader) => (
+                    <LeaderPhoto
+                      key={leader.id}
+                      name={leader.name}
+                      rank={leader.rank}
+                      photoUrl={leader.photoUrl}
+                      size="sm"
+                    />
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
 
-            {/* Description */}
-            <div className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">
-              {description}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SquadronSection({
-  squadron,
-}: {
-  squadron: (typeof SQUADRONS)[number];
-}) {
-  return (
-    <section className="rounded-lg bg-[#3a6fbf] text-white overflow-hidden">
-      <div className="p-6 md:p-10">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex h-16 w-16 md:h-20 md:w-20 shrink-0 items-center justify-center rounded-full bg-military-navy text-military-gold border-2 border-military-gold text-xl font-bold">
-            {squadron.name.match(/\d+/)?.[0]}
-          </div>
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold">{squadron.name}</h2>
-            {squadron.motto && (
-              <p className="text-sm italic text-blue-100">
-                &ldquo;{squadron.motto}&rdquo;
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Content grid */}
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Left: Photos */}
-          <div className="flex flex-col items-center md:items-start">
-            <LeaderPhoto
-              name={squadron.commander.name}
-              rank={squadron.commander.rank}
-              photo={squadron.commander.photo}
-              size="lg"
-            />
-            <div className="flex gap-3 mt-4">
-              {squadron.leaders.map((leader) => (
-                <LeaderPhoto
-                  key={leader.name}
-                  name={leader.name}
-                  rank={leader.rank}
-                  photo={leader.photo}
-                  size="sm"
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Right: Info */}
-          <div className="flex-1 space-y-6">
-            {/* Leadership roster */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+            <div className="flex-1 space-y-6">
               <div className="space-y-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-yellow-300">
-                    Commander
-                  </p>
-                  <p className="text-sm">
-                    {squadron.commander.rank} {squadron.commander.name}
-                  </p>
-                </div>
-                {squadron.leaders.map((leader) => (
-                  <div key={leader.name}>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-yellow-300">
+                {ordered.map((leader) => (
+                  <div key={leader.id}>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-military-gold">
                       {leader.title}
                     </p>
                     <p className="text-sm">
@@ -351,30 +169,123 @@ function SquadronSection({
                 ))}
               </div>
 
+              <div className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">
+                {groupDescription}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function SquadronSection({
+  squadron,
+  leaders,
+}: {
+  squadron: Squadron;
+  leaders: Leader[];
+}) {
+  const ordered = orderLeaders(leaders);
+  const commander = ordered.find((l) => l.title === "Commander");
+  const others = ordered.filter((l) => l.title !== "Commander");
+  const squadronNumber = squadron.unit.match(/\d+/)?.[0] ?? "";
+  const afscs = squadronAfscs(squadron.afscs);
+
+  return (
+    <section className="rounded-lg bg-[#3a6fbf] text-white overflow-hidden">
+      <div className="p-6 md:p-10">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex h-16 w-16 md:h-20 md:w-20 shrink-0 items-center justify-center rounded-full bg-military-navy text-military-gold border-2 border-military-gold text-xl font-bold">
+            {squadronNumber}
+          </div>
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold">{squadron.unit}</h2>
+            {squadron.motto && (
+              <p className="text-sm italic text-blue-100">
+                &ldquo;{squadron.motto}&rdquo;
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-8">
+          <div className="flex flex-col items-center md:items-start">
+            {commander ? (
+              <LeaderPhoto
+                name={commander.name}
+                rank={commander.rank}
+                photoUrl={commander.photoUrl}
+                size="lg"
+              />
+            ) : (
+              <LeaderPhoto
+                name="?"
+                rank=""
+                photoUrl={null}
+                size="lg"
+              />
+            )}
+            {others.length > 0 && (
+              <div className="flex gap-3 mt-4 flex-wrap">
+                {others.map((leader) => (
+                  <LeaderPhoto
+                    key={leader.id}
+                    name={leader.name}
+                    rank={leader.rank}
+                    photoUrl={leader.photoUrl}
+                    size="sm"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+              <div className="space-y-3">
+                {ordered.length === 0 ? (
+                  <p className="text-sm text-blue-100 italic">
+                    No leaders assigned yet.
+                  </p>
+                ) : (
+                  ordered.map((leader) => (
+                    <div key={leader.id}>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-yellow-300">
+                        {leader.title}
+                      </p>
+                      <p className="text-sm">
+                        {leader.rank} {leader.name}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-yellow-300">
                     Mission
                   </h3>
-                  <p className="text-sm text-blue-100">{squadron.mission}</p>
+                  <p className="text-sm text-blue-100">{squadron.mission ?? ""}</p>
                 </div>
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-yellow-300">
                     Vision
                   </h3>
-                  <p className="text-sm text-blue-100">{squadron.vision}</p>
+                  <p className="text-sm text-blue-100">{squadron.vision ?? ""}</p>
                 </div>
               </div>
             </div>
 
-            {/* AFSCs */}
-            {squadron.afscs.length > 0 && (
+            {afscs.length > 0 && (
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-yellow-300 mb-2">
                   AFSCs
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
-                  {squadron.afscs.map((afsc) => (
+                  {afscs.map((afsc) => (
                     <p key={afsc} className="text-xs text-blue-100">
                       {afsc}
                     </p>
@@ -389,17 +300,53 @@ function SquadronSection({
   );
 }
 
-export default function LeadershipPage() {
+export default async function LeadershipPage() {
+  const [allLeaders, squadrons, settings] = await Promise.all([
+    prisma.leadershipProfile.findMany({
+      where: { isActive: true, profileType: "leadership" },
+      orderBy: { sortOrder: "asc" },
+      select: {
+        id: true,
+        name: true,
+        rank: true,
+        title: true,
+        unit: true,
+        photoUrl: true,
+      },
+    }),
+    getAllSquadrons(),
+    getAllSettings(),
+  ]);
+
+  const groupUnit = settings.siteName || "937th Training Group";
+  const groupDescription = settings.groupDescription || "";
+  const location = settings.location || "JBSA-Fort Sam Houston, TX";
+
+  const groupLeaders = allLeaders.filter((l) => l.unit === groupUnit);
+  const squadronLeaders = squadrons.map((squadron) => ({
+    squadron,
+    leaders: allLeaders.filter((l) => l.unit === squadron.unit),
+  }));
+
   return (
     <div>
       <PageHeader
         title="Meet Your Leadership"
-        description="The command team of the 937th Training Group at JBSA-Fort Sam Houston."
+        description={`The command team of the ${groupUnit} at ${location}.`}
       />
       <div className="mx-auto max-w-7xl px-4 py-8 space-y-8">
-        <GroupSection />
-        {SQUADRONS.map((squadron) => (
-          <SquadronSection key={squadron.name} squadron={squadron} />
+        <GroupSection
+          leaders={groupLeaders}
+          groupUnit={groupUnit}
+          groupDescription={groupDescription}
+          location={location}
+        />
+        {squadronLeaders.map(({ squadron, leaders }) => (
+          <SquadronSection
+            key={squadron.id}
+            squadron={squadron}
+            leaders={leaders}
+          />
         ))}
       </div>
     </div>

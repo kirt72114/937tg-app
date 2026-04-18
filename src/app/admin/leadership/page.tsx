@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/admin/data-table";
+import { ImagePicker } from "@/components/admin/image-picker";
 import { Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -12,6 +13,8 @@ import {
   createProfile,
   updateProfile,
   deleteProfile,
+  reorderProfile,
+  seedDefaultLeadership,
 } from "@/lib/actions/leadership";
 
 type Leader = {
@@ -42,12 +45,20 @@ type FormData = {
 const emptyForm: FormData = {
   name: "",
   rank: "",
-  title: "",
-  unit: "",
+  title: "Commander",
+  unit: "937th Training Group",
   bio: "",
   photoUrl: "",
   profileType: "leadership",
 };
+
+const LEADERSHIP_TITLES = [
+  "Commander",
+  "Deputy Commander",
+  "Section Commander",
+  "Senior Enlisted Leader",
+  "First Sergeant",
+];
 
 const columns = [
   {
@@ -169,9 +180,21 @@ export default function AdminLeadershipPage() {
     }
   }
 
-  async function handleToggleActive(item: Leader) {
-    await updateProfile(item.id, { isActive: !item.isActive });
+  async function handleMove(item: Leader, direction: "up" | "down") {
+    await reorderProfile(item.id, direction);
     await loadData();
+  }
+
+  async function handleSeed() {
+    if (
+      !confirm(
+        "Populate the database with default 937th squadron leadership profiles? Existing entries will be kept — only missing ones will be added."
+      )
+    )
+      return;
+    const result = await seedDefaultLeadership();
+    await loadData();
+    alert(`Added ${result.added} leadership profile(s).`);
   }
 
   async function handleDelete(item: Leader) {
@@ -191,10 +214,15 @@ export default function AdminLeadershipPage() {
             Manage leadership profiles displayed on the public site.
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Leader
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleSeed}>
+            Seed Defaults
+          </Button>
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Leader
+          </Button>
+        </div>
       </div>
 
       {showForm && (
@@ -227,26 +255,40 @@ export default function AdminLeadershipPage() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Title / Position *</label>
-                <Input
+                <select
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  placeholder="e.g. Commander"
-                />
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  {LEADERSHIP_TITLES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Title controls where this person appears on the public page.
+                </p>
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Unit</label>
-                <Input
+                <label className="text-sm font-medium">Unit / Squadron</label>
+                <select
                   value={form.unit}
                   onChange={(e) => setForm({ ...form, unit: e.target.value })}
-                  placeholder="e.g. 937th Training Group"
-                />
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="937th Training Group">937th Training Group</option>
+                  <option value="381st Training Squadron">381st Training Squadron</option>
+                  <option value="382d Training Squadron">382d Training Squadron</option>
+                  <option value="383d Training Squadron">383d Training Squadron</option>
+                </select>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">Photo URL</label>
-                <Input
+              <div className="space-y-1.5 sm:col-span-2">
+                <ImagePicker
                   value={form.photoUrl}
-                  onChange={(e) => setForm({ ...form, photoUrl: e.target.value })}
-                  placeholder="/images/leadership/photo.jpg"
+                  onChange={(url) => setForm({ ...form, photoUrl: url })}
+                  folder="leadership"
+                  label="Photo"
                 />
               </div>
               <div className="space-y-1.5">
@@ -288,6 +330,8 @@ export default function AdminLeadershipPage() {
         data={data}
         onEdit={openEdit}
         onDelete={handleDelete}
+        onMoveUp={(item) => handleMove(item, "up")}
+        onMoveDown={(item) => handleMove(item, "down")}
       />
     </div>
   );

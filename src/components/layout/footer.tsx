@@ -1,7 +1,84 @@
 import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/constants";
+import { getCollectionBySlug } from "@/lib/actions/links";
+import { FOOTER_SLUGS } from "@/lib/links-constants";
 
-export function Footer() {
+const QUICK_LINKS_FALLBACK = {
+  title: "Quick Links",
+  items: [
+    { id: "f1", title: "Leadership", url: "/leadership" },
+    { id: "f2", title: "Phone Numbers", url: "/phone-numbers" },
+    { id: "f3", title: "Work Orders", url: "/work-orders" },
+    { id: "f4", title: "Locations", url: "/locations" },
+    { id: "f5", title: "In-Processing", url: "/in-processing" },
+  ],
+};
+
+const RESOURCES_FALLBACK = {
+  title: "Resources",
+  items: [
+    { id: "r1", title: "AiT Guide", url: "/ait-guide" },
+    { id: "r2", title: "DFAC Hours", url: "/dfac-hours" },
+    { id: "r3", title: "Shuttle Route", url: "/shuttle" },
+    { id: "r4", title: "Military OneSource", url: "/military-onesource" },
+    { id: "r5", title: "JBSA Connect", url: "/jbsa-connect" },
+  ],
+};
+
+type FooterColumn = {
+  title: string;
+  items: { id: string; title: string; url: string }[];
+};
+
+async function loadColumn(
+  slug: string,
+  fallback: FooterColumn
+): Promise<FooterColumn> {
+  try {
+    const c = await getCollectionBySlug(slug);
+    if (!c || c.items.length === 0) return fallback;
+    return {
+      title: c.title,
+      items: c.items.map((i) => ({ id: i.id, title: i.title, url: i.url })),
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function FooterLink({ url, title }: { url: string; title: string }) {
+  const className =
+    "text-xs text-gray-400 hover:text-military-gold transition-colors";
+  if (url.startsWith("/")) {
+    return (
+      <Link href={url} className={className}>
+        {title}
+      </Link>
+    );
+  }
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className={className}>
+      {title}
+    </a>
+  );
+}
+
+export async function Footer({
+  settings,
+}: {
+  settings?: Record<string, string>;
+}) {
+  const siteName = settings?.siteName || SITE_CONFIG.name;
+  const mission = settings?.mission || SITE_CONFIG.mission;
+  const branch = settings?.branch || SITE_CONFIG.branch;
+  const location = settings?.location || SITE_CONFIG.location;
+  const footerText = settings?.footerText;
+
+  const [quickLinks, resources] = await Promise.all([
+    loadColumn(FOOTER_SLUGS.quick, QUICK_LINKS_FALLBACK),
+    loadColumn(FOOTER_SLUGS.resources, RESOURCES_FALLBACK),
+  ]);
+
   return (
     <footer className="border-t bg-military-navy text-gray-300">
       <div className="mx-auto max-w-7xl px-4 py-8">
@@ -14,76 +91,40 @@ export function Footer() {
               </div>
               <div>
                 <div className="text-sm font-bold text-white">
-                  {SITE_CONFIG.name}
+                  {siteName}
                 </div>
                 <div className="text-xs text-gray-400">
-                  {SITE_CONFIG.location}
+                  {location}
                 </div>
               </div>
             </div>
             <p className="text-xs text-gray-400 leading-relaxed">
-              {SITE_CONFIG.mission}
+              {mission}
             </p>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-sm font-semibold text-white mb-3">
-              Quick Links
-            </h3>
-            <ul className="space-y-2">
-              {[
-                { label: "Leadership", href: "/leadership" },
-                { label: "Phone Numbers", href: "/phone-numbers" },
-                { label: "Work Orders", href: "/work-orders" },
-                { label: "Locations", href: "/locations" },
-                { label: "In-Processing", href: "/in-processing" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-xs text-gray-400 hover:text-military-gold transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <h3 className="text-sm font-semibold text-white mb-3">
-              Resources
-            </h3>
-            <ul className="space-y-2">
-              {[
-                { label: "AiT Guide", href: "/ait-guide" },
-                { label: "DFAC Hours", href: "/dfac-hours" },
-                { label: "Shuttle Route", href: "/shuttle" },
-                { label: "Military OneSource", href: "/military-onesource" },
-                { label: "JBSA Connect", href: "/jbsa-connect" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-xs text-gray-400 hover:text-military-gold transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {[quickLinks, resources].map((col) => (
+            <div key={col.title}>
+              <h3 className="text-sm font-semibold text-white mb-3">
+                {col.title}
+              </h3>
+              <ul className="space-y-2">
+                {col.items.map((item) => (
+                  <li key={item.id}>
+                    <FooterLink url={item.url} title={item.title} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
         <div className="mt-8 border-t border-military-blue pt-4 text-center">
           <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} {SITE_CONFIG.name}. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} {siteName}. All rights reserved.
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            {SITE_CONFIG.branch} &bull; {SITE_CONFIG.location}
+            {footerText || `${branch} \u2022 ${location}`}
           </p>
         </div>
       </div>

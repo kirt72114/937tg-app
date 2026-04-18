@@ -12,6 +12,7 @@ import {
   createLocation,
   updateLocation,
   deleteLocation,
+  reorderLocation,
 } from "@/lib/actions/locations";
 
 type Location = {
@@ -129,6 +130,11 @@ export default function AdminLocationsPage() {
     }
   }
 
+  async function handleMove(item: Location, direction: "up" | "down") {
+    await reorderLocation(item.id, direction);
+    await loadData();
+  }
+
   async function handleDelete(item: Location) {
     if (!confirm(`Delete "${item.name}"?`)) return;
     await deleteLocation(item.id);
@@ -228,6 +234,8 @@ export default function AdminLocationsPage() {
         data={data}
         onEdit={openEdit}
         onDelete={handleDelete}
+        onMoveUp={(item) => handleMove(item, "up")}
+        onMoveDown={(item) => handleMove(item, "down")}
       />
     </div>
   );

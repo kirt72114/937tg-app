@@ -54,6 +54,7 @@ export const ADMIN_NAV_ITEMS = [
   { label: "Pages", href: "/admin/pages", icon: "FileText" },
   { label: "Announcements", href: "/admin/announcements", icon: "Megaphone" },
   { label: "Leadership", href: "/admin/leadership", icon: "Users" },
+  { label: "Squadrons", href: "/admin/squadrons", icon: "Shield" },
   { label: "MTLs", href: "/admin/mtls", icon: "UserCheck" },
   { label: "Phone Directory", href: "/admin/contacts", icon: "Phone" },
   { label: "Locations", href: "/admin/locations", icon: "MapPin" },

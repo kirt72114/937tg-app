@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/admin/data-table";
+import { ImagePicker } from "@/components/admin/image-picker";
 import { Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -12,6 +13,7 @@ import {
   createProfile,
   updateProfile,
   deleteProfile,
+  reorderProfile,
 } from "@/lib/actions/leadership";
 
 type Mtl = {
@@ -151,6 +153,11 @@ export default function AdminMtlsPage() {
     }
   }
 
+  async function handleMove(item: Mtl, direction: "up" | "down") {
+    await reorderProfile(item.id, direction);
+    await loadData();
+  }
+
   async function handleDelete(item: Mtl) {
     if (!confirm(`Delete "${item.name}"?`)) return;
     await deleteProfile(item.id);
@@ -218,11 +225,12 @@ export default function AdminMtlsPage() {
                   placeholder="e.g. 381st TRS"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium">Photo URL</label>
-                <Input
+              <div className="space-y-1.5 sm:col-span-2">
+                <ImagePicker
                   value={form.photoUrl}
-                  onChange={(e) => setForm({ ...form, photoUrl: e.target.value })}
+                  onChange={(url) => setForm({ ...form, photoUrl: url })}
+                  folder="mtls"
+                  label="Photo"
                   placeholder="/images/mtls/photo.jpg"
                 />
               </div>
@@ -257,6 +265,8 @@ export default function AdminMtlsPage() {
         data={data}
         onEdit={openEdit}
         onDelete={handleDelete}
+        onMoveUp={(item) => handleMove(item, "up")}
+        onMoveDown={(item) => handleMove(item, "down")}
       />
     </div>
   );

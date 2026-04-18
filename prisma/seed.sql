@@ -27,13 +27,32 @@ INSERT INTO "contacts" ("name", "phone", "category", "sort_order") VALUES
 ('Library', '210-221-4326', 'Recreation', 21);
 
 -- ─── Leadership Profiles ──────────────────────────────
+-- 937th Training Group
+INSERT INTO "leadership_profiles" ("name", "rank", "title", "unit", "photo_url", "profile_type", "sort_order") VALUES
+('Brian Caruthers',       'Col',    'Commander',              '937th Training Group', '/images/leadership/col-caruthers-brian.jpg',   'leadership', 1),
+('Mark Hassett',          'Lt Col', 'Deputy Commander',       '937th Training Group', '/images/leadership/ltcol-hassett-mark.jpg',    'leadership', 2),
+('James Keller',          'CMSgt',  'Senior Enlisted Leader', '937th Training Group', NULL,                                            'leadership', 3);
 
-INSERT INTO "leadership_profiles" ("name", "rank", "title", "unit", "profile_type", "sort_order") VALUES
-('John Richardson', 'Colonel', 'Commander', '937th Training Group', 'leadership', 1),
-('Sarah Mitchell', 'Lt Colonel', 'Vice Commander', '937th Training Group', 'leadership', 2),
-('Robert Chen', 'CMSgt', 'Command Chief', '937th Training Group', 'leadership', 3),
-('Marcus Williams', 'SMSgt', 'Superintendent', '937th Training Group', 'leadership', 4),
-('Jennifer Lopez', 'CMSgt', 'First Sergeant', '937th Training Group', 'leadership', 5);
+-- 381st Training Squadron
+INSERT INTO "leadership_profiles" ("name", "rank", "title", "unit", "photo_url", "profile_type", "sort_order") VALUES
+('Heather Brooks',        'Lt Col', 'Commander',              '381st Training Squadron', '/images/leadership/ltcol-brooks-heather.jpg',   'leadership', 10),
+('Erica Gunderson',       'Capt',   'Section Commander',      '381st Training Squadron', '/images/leadership/capt-gunderson-erica.jpg',   'leadership', 11),
+('Justin Rhodes',         'MSG',    'Senior Enlisted Leader', '381st Training Squadron', '/images/leadership/msg-rhodes-justin.jpg',      'leadership', 12),
+('Nathan Bentley',        'MSgt',   'First Sergeant',         '381st Training Squadron', '/images/leadership/msgt-bentley-nathan.png',    'leadership', 13);
+
+-- 382d Training Squadron
+INSERT INTO "leadership_profiles" ("name", "rank", "title", "unit", "photo_url", "profile_type", "sort_order") VALUES
+('Christopher Dufford',   'Lt Col', 'Commander',              '382d Training Squadron', '/images/leadership/ltcol-dufford-christopher.jpg', 'leadership', 20),
+('Michael Mask',          'Capt',   'Section Commander',      '382d Training Squadron', '/images/leadership/capt-mask-michael.jpg',         'leadership', 21),
+('Veronica Everest',      'CMSgt',  'Senior Enlisted Leader', '382d Training Squadron', '/images/leadership/cmsgt-everest-veronica.jpg',    'leadership', 22),
+('Stacey Williamson',     'MSgt',   'First Sergeant',         '382d Training Squadron', '/images/leadership/msgt-williamson-stacey.jpg',    'leadership', 23);
+
+-- 383d Training Squadron
+INSERT INTO "leadership_profiles" ("name", "rank", "title", "unit", "photo_url", "profile_type", "sort_order") VALUES
+('Tracy Davis',           'Lt Col', 'Commander',              '383d Training Squadron', '/images/leadership/ltcol-davis-tracy.png',       'leadership', 30),
+('Rubert Laco',           'Maj',    'Section Commander',      '383d Training Squadron', '/images/leadership/maj-laco-rubert.jpg',         'leadership', 31),
+('Fabrizio Lamarca',      'CMSgt',  'Senior Enlisted Leader', '383d Training Squadron', NULL,                                              'leadership', 32),
+('James Kendall',         'SMSgt',  'First Sergeant',         '383d Training Squadron', '/images/leadership/smsgt-kendall-james.jpg',     'leadership', 33);
 
 -- ─── MTL Profiles ─────────────────────────────────────
 

@@ -1,26 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/admin/data-table";
 import { Plus, Search, FileText } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getAllPages, deletePage } from "@/lib/actions/pages";
+import { useRouter } from "next/navigation";
 
-const mockPages = [
-  { id: "1", title: "Home", slug: "/", status: "published", type: "static", updatedAt: "Apr 8, 2026" },
-  { id: "2", title: "Meet Your Leadership", slug: "/leadership", status: "published", type: "static", updatedAt: "Apr 8, 2026" },
-  { id: "3", title: "Meet Your MTLs", slug: "/mtls", status: "published", type: "static", updatedAt: "Apr 8, 2026" },
-  { id: "4", title: "AiT Guide", slug: "/ait-guide", status: "published", type: "dynamic", updatedAt: "Apr 8, 2026" },
-  { id: "5", title: "In-Processing", slug: "/in-processing", status: "published", type: "dynamic", updatedAt: "Apr 9, 2026" },
-  { id: "6", title: "Out-Processing", slug: "/out-processing", status: "published", type: "dynamic", updatedAt: "Apr 9, 2026" },
-  { id: "7", title: "DFAC Hours", slug: "/dfac-hours", status: "published", type: "dynamic", updatedAt: "Apr 9, 2026" },
-  { id: "8", title: "Shuttle Route", slug: "/shuttle", status: "draft", type: "dynamic", updatedAt: "Apr 9, 2026" },
-];
+type PageItem = {
+  id: string;
+  title: string;
+  slug: string;
+  isPublished: boolean;
+  pageType: string;
+  updatedAt: Date;
+  creator: { name: string } | null;
+};
 
-type PageItem = (typeof mockPages)[number];
+function formatDate(date: Date): string {
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 const columns = [
   {
@@ -31,40 +37,64 @@ const columns = [
         <FileText className="h-4 w-4 text-muted-foreground" />
         <div>
           <p className="font-medium">{item.title}</p>
-          <p className="text-xs text-muted-foreground">{item.slug}</p>
+          <p className="text-xs text-muted-foreground">/{item.slug}</p>
         </div>
       </div>
     ),
   },
   {
-    key: "status",
+    key: "isPublished",
     header: "Status",
     render: (item: PageItem) => (
-      <Badge variant={item.status === "published" ? "success" : "secondary"}>
-        {item.status}
+      <Badge variant={item.isPublished ? "success" : "secondary"}>
+        {item.isPublished ? "Published" : "Draft"}
       </Badge>
     ),
     className: "w-28",
   },
   {
-    key: "type",
+    key: "pageType",
     header: "Type",
     render: (item: PageItem) => (
-      <Badge variant="outline" className="text-xs">{item.type}</Badge>
+      <Badge variant="outline" className="text-xs">
+        {item.pageType}
+      </Badge>
     ),
     className: "w-24",
   },
   {
     key: "updatedAt",
     header: "Updated",
+    render: (item: PageItem) => formatDate(item.updatedAt),
     className: "w-32",
   },
 ];
 
 export default function AdminPagesPage() {
+  const router = useRouter();
+  const [data, setData] = useState<PageItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  const filtered = mockPages.filter((p) =>
+  async function loadData() {
+    const items = await getAllPages();
+    setData(items as PageItem[]);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  async function handleDelete(item: PageItem) {
+    if (!confirm(`Delete "${item.title}"?`)) return;
+    await deletePage(item.id);
+    loadData();
+  }
+
+  if (loading) return <div className="p-6">Loading...</div>;
+
+  const filtered = data.filter((p) =>
     p.title.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -73,7 +103,9 @@ export default function AdminPagesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Pages</h1>
-          <p className="text-sm text-muted-foreground">Manage your site content pages.</p>
+          <p className="text-sm text-muted-foreground">
+            Manage your site content pages.
+          </p>
         </div>
         <Button asChild>
           <Link href="/admin/pages/new">
@@ -96,9 +128,9 @@ export default function AdminPagesPage() {
       <DataTable
         columns={columns}
         data={filtered}
-        onEdit={(item) => alert(`Edit page: ${item.title}`)}
-        onDelete={(item) => alert(`Delete page: ${item.title}`)}
-        emptyMessage="No pages found."
+        onEdit={(item) => router.push(`/admin/pages/${item.id}`)}
+        onDelete={handleDelete}
+        emptyMessage="No pages yet. Click 'New Page' to create one."
       />
     </div>
   );
