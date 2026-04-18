@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
@@ -24,7 +25,7 @@ export async function uploadFile(formData: FormData) {
     return { error: "File too large (max 10 MB)" };
   }
 
-  const supabase = await createClient();
+  const admin = createAdminClient();
 
   const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
   const safeName = file.name
@@ -37,7 +38,7 @@ export async function uploadFile(formData: FormData) {
 
   const arrayBuffer = await file.arrayBuffer();
 
-  const { error: uploadError } = await supabase.storage
+  const { error: uploadError } = await admin.storage
     .from(STORAGE_BUCKET)
     .upload(path, arrayBuffer, {
       contentType: file.type,
@@ -52,7 +53,7 @@ export async function uploadFile(formData: FormData) {
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+  } = admin.storage.from(STORAGE_BUCKET).getPublicUrl(path);
 
   // Record in files table for tracking.
   try {
@@ -105,8 +106,8 @@ export async function deleteUploadedFile(id: string) {
   const file = await prisma.file.findUnique({ where: { id } });
   if (!file) return { error: "File not found" };
 
-  const supabase = await createClient();
-  await supabase.storage.from(STORAGE_BUCKET).remove([file.storagePath]);
+  const admin = createAdminClient();
+  await admin.storage.from(STORAGE_BUCKET).remove([file.storagePath]);
   await prisma.file.delete({ where: { id } });
 
   revalidatePath("/admin/files");
