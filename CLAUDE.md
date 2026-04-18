@@ -7,6 +7,6 @@
 
 ## Pending Migrations (hardcoded pages → CMS)
 - [x] **12 prose pages** → Seeded in `prisma/seed-pages.sql`, hardcoded routes deleted
-- [ ] **Leadership Programs page** → Wire existing RopeProgram Prisma model for /leadership-programs (server actions + admin page + rewire public page)
-- [ ] **Schedule pages** → Wire existing Schedule model for /dfac-hours and /shuttle (seed default schedules + rewire public pages)
-- [ ] **AFSC page** → New Prisma model + server actions + admin page + rewire /afscs public page
+- [x] **Leadership Programs page** → RopeProgram wired at `/leadership-programs`, admin at `/admin/rope-programs`
+- [x] **Schedule pages** → `/dfac-hours` and `/shuttle` read from Schedule model; seed defaults available in schedules admin
+- [x] **AFSC page** → New `Afsc` model (run `prisma/migration-afscs.sql`), admin at `/admin/afscs`

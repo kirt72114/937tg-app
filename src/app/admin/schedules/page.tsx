@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/admin/data-table";
-import { Plus, Calendar, X } from "lucide-react";
+import { Plus, Calendar, X, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   getAllSchedules,
   createSchedule,
   updateSchedule,
   deleteSchedule,
+  seedDefaultSchedules,
 } from "@/lib/actions/schedules";
 
 type Schedule = {
@@ -188,6 +189,21 @@ export default function AdminSchedulesPage() {
     loadData();
   }
 
+  async function handleSeed() {
+    setSaving(true);
+    try {
+      const result = await seedDefaultSchedules();
+      if (result.added === 0) {
+        alert("All default schedules already exist.");
+      } else {
+        alert(`Added ${result.added} schedule(s).`);
+      }
+      await loadData();
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (loading) return <div className="p-6">Loading...</div>;
 
   return (
@@ -199,10 +215,18 @@ export default function AdminSchedulesPage() {
             Manage DFAC hours, shuttle routes, and other schedules.
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Schedule
-        </Button>
+        <div className="flex gap-2">
+          {data.length === 0 && (
+            <Button variant="outline" onClick={handleSeed} disabled={saving}>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Seed Defaults
+            </Button>
+          )}
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Schedule
+          </Button>
+        </div>
       </div>
 
       {showForm && (
@@ -272,12 +296,20 @@ export default function AdminSchedulesPage() {
               <textarea
                 value={form.content}
                 onChange={(e) => setForm({ ...form, content: e.target.value })}
-                rows={6}
-                placeholder='{"breakfast": "0600-0800", "lunch": "1100-1300", "dinner": "1700-1900"}'
-                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y min-h-[120px]"
+                rows={10}
+                placeholder={
+                  form.scheduleType === "shuttle"
+                    ? '{\n  "operatingHours": { "weekday": "Mon-Fri: 0600-2000", "weekend": "Sat-Sun: 0800-1800" },\n  "frequency": "Every 30 minutes",\n  "stops": [\n    { "name": "METC Campus", "time": ":00 / :30" }\n  ]\n}'
+                    : '{\n  "meals": [\n    { "name": "Breakfast", "time": "0600 - 0800", "notes": "Hot breakfast served" },\n    { "name": "Lunch", "time": "1100 - 1300", "notes": "Full lunch menu" }\n  ]\n}'
+                }
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y min-h-[160px]"
               />
               <p className="text-xs text-muted-foreground">
-                Enter schedule data as JSON. This will be rendered on the public page.
+                {form.scheduleType === "shuttle"
+                  ? "Shuttle shape: operatingHours, frequency, stops [{ name, time }]."
+                  : form.scheduleType === "dfac"
+                    ? "DFAC shape: meals [{ name, time, notes }]."
+                    : "Enter any JSON; rendered as raw on the public page."}
               </p>
             </div>
             <div className="flex gap-2">
