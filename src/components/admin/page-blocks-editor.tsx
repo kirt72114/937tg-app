@@ -17,6 +17,9 @@ import {
   Phone,
   Contact,
   Star,
+  ListOrdered,
+  Route as RouteIcon,
+  CalendarClock,
 } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { InfoCardsEditor } from "@/components/admin/blocks/info-cards-editor";
@@ -25,6 +28,9 @@ import { ChecklistEditor } from "@/components/admin/blocks/checklist-editor";
 import { ContactsDirectoryEditor } from "@/components/admin/blocks/contacts-directory-editor";
 import { ContactInfoEditor } from "@/components/admin/blocks/contact-info-editor";
 import { HighlightCardEditor } from "@/components/admin/blocks/highlight-card-editor";
+import { PhasesEditor } from "@/components/admin/blocks/phases-editor";
+import { NumberedStepsEditor } from "@/components/admin/blocks/numbered-steps-editor";
+import { ScheduleGridEditor } from "@/components/admin/blocks/schedule-grid-editor";
 import {
   createChecklistBlock,
   createContactInfoBlock,
@@ -32,7 +38,10 @@ import {
   createHighlightCardBlock,
   createHtmlBlock,
   createInfoCardsBlock,
+  createNumberedStepsBlock,
+  createPhasesBlock,
   createRosterBlock,
+  createScheduleGridBlock,
   createStatsBlock,
   type ChecklistBlock,
   type ContactInfoBlock,
@@ -40,10 +49,13 @@ import {
   type HighlightCardBlock,
   type HtmlBlock,
   type InfoCardsBlock,
+  type NumberedStepsBlock,
   type PageBlock,
+  type PhasesBlock,
   type RosterBlock,
   type RosterDisplay,
   type RosterProfileType,
+  type ScheduleGridBlock,
   type StatsBlock,
 } from "@/lib/content-blocks";
 
@@ -65,6 +77,9 @@ const BLOCK_LABELS: Record<PageBlock["type"], string> = {
   "contacts-directory": "Phone Directory",
   "contact-info": "Contact Info",
   "highlight-card": "Highlight Card",
+  phases: "Phases",
+  "numbered-steps": "Numbered Steps",
+  "schedule-grid": "Schedule Grid",
 };
 
 interface PageBlocksEditorProps {
@@ -188,6 +203,33 @@ export function PageBlocksEditor({ blocks, onChange }: PageBlocksEditorProps) {
           type="button"
           variant="outline"
           size="sm"
+          onClick={() => add(createPhasesBlock())}
+        >
+          <ListOrdered className="h-4 w-4 mr-2" />
+          Add Phases
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => add(createNumberedStepsBlock())}
+        >
+          <RouteIcon className="h-4 w-4 mr-2" />
+          Add Numbered Steps
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => add(createScheduleGridBlock())}
+        >
+          <CalendarClock className="h-4 w-4 mr-2" />
+          Add Schedule Grid
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
           onClick={() => add(createRosterBlock())}
         >
           <Users className="h-4 w-4 mr-2" />
@@ -300,6 +342,24 @@ function BlockCard({
           <HighlightCardEditor
             block={block}
             onChange={(next: HighlightCardBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "phases" && (
+          <PhasesEditor
+            block={block}
+            onChange={(next: PhasesBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "numbered-steps" && (
+          <NumberedStepsEditor
+            block={block}
+            onChange={(next: NumberedStepsBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "schedule-grid" && (
+          <ScheduleGridEditor
+            block={block}
+            onChange={(next: ScheduleGridBlock) => onChange(next)}
           />
         )}
       </CardContent>

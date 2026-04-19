@@ -43,7 +43,12 @@ export type StatsBlock = {
   stats: StatItem[];
 };
 
-export type ChecklistVariant = "normal" | "warning" | "success" | "info";
+export type ChecklistVariant =
+  | "normal"
+  | "warning"
+  | "success"
+  | "info"
+  | "tips";
 
 export type ChecklistItem = { text: string; subtext?: string };
 
@@ -90,6 +95,48 @@ export type HighlightCardBlock = {
   variant: HighlightVariant;
 };
 
+export type Phase = {
+  badge?: string;
+  title: string;
+  timeframe?: string;
+  items: string[];
+};
+
+export type PhasesBlock = {
+  type: "phases";
+  phases: Phase[];
+  badgeVariant: "default" | "secondary" | "outline";
+};
+
+export type NumberedStep = { text: string; badge?: string };
+
+export type NumberedStepsStyle = "numbered" | "dot";
+
+export type NumberedStepsBlock = {
+  type: "numbered-steps";
+  title?: string;
+  subtitle?: string;
+  icon?: string;
+  color: string;
+  style: NumberedStepsStyle;
+  steps: NumberedStep[];
+};
+
+export type ScheduleRow = { label: string; value: string; notes?: string };
+
+export type ScheduleColumn = {
+  title: string;
+  badge?: string;
+  badgeVariant: "default" | "secondary" | "outline";
+  rows: ScheduleRow[];
+};
+
+export type ScheduleGridBlock = {
+  type: "schedule-grid";
+  heading?: string;
+  columns: ScheduleColumn[];
+};
+
 export type PageBlock =
   | HtmlBlock
   | RosterBlock
@@ -98,7 +145,10 @@ export type PageBlock =
   | ChecklistBlock
   | ContactsDirectoryBlock
   | ContactInfoBlock
-  | HighlightCardBlock;
+  | HighlightCardBlock
+  | PhasesBlock
+  | NumberedStepsBlock
+  | ScheduleGridBlock;
 
 export type PageBlocksContent = { blocks: PageBlock[] };
 
@@ -168,6 +218,15 @@ function normalizeBlock(value: unknown): PageBlock | null {
 
     case "highlight-card":
       return typeof b.title === "string" ? (b as HighlightCardBlock) : null;
+
+    case "phases":
+      return Array.isArray(b.phases) ? (b as PhasesBlock) : null;
+
+    case "numbered-steps":
+      return Array.isArray(b.steps) ? (b as NumberedStepsBlock) : null;
+
+    case "schedule-grid":
+      return Array.isArray(b.columns) ? (b as ScheduleGridBlock) : null;
 
     default:
       return null;
@@ -268,6 +327,53 @@ export function createHighlightCardBlock(
     title: defaults.title ?? "Important note",
     description: defaults.description ?? "Add a short, impactful message here.",
     variant: defaults.variant ?? "navy",
+  };
+}
+
+export function createPhasesBlock(
+  defaults: Partial<PhasesBlock> = {}
+): PhasesBlock {
+  return {
+    type: "phases",
+    badgeVariant: defaults.badgeVariant ?? "default",
+    phases: defaults.phases ?? [
+      {
+        badge: "Day 1",
+        title: "Phase 1",
+        timeframe: "Day 1",
+        items: ["First to-do item"],
+      },
+    ],
+  };
+}
+
+export function createNumberedStepsBlock(
+  defaults: Partial<NumberedStepsBlock> = {}
+): NumberedStepsBlock {
+  return {
+    type: "numbered-steps",
+    title: defaults.title,
+    subtitle: defaults.subtitle,
+    icon: defaults.icon,
+    color: defaults.color ?? "military-blue",
+    style: defaults.style ?? "numbered",
+    steps: defaults.steps ?? [{ text: "First step" }],
+  };
+}
+
+export function createScheduleGridBlock(
+  defaults: Partial<ScheduleGridBlock> = {}
+): ScheduleGridBlock {
+  return {
+    type: "schedule-grid",
+    heading: defaults.heading,
+    columns: defaults.columns ?? [
+      {
+        title: "Column",
+        badgeVariant: "default",
+        rows: [{ label: "Breakfast", value: "0600 - 0800" }],
+      },
+    ],
   };
 }
 

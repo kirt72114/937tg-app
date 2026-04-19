@@ -18,6 +18,7 @@ const VARIANTS: { value: ChecklistVariant; label: string }[] = [
   { value: "warning", label: "Warning (red border)" },
   { value: "success", label: "Success (green border)" },
   { value: "info", label: "Info (blue border)" },
+  { value: "tips", label: "Tips (gold border, lightbulb)" },
 ];
 
 export function ChecklistEditor({

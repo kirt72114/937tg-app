@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, AlertTriangle, Info } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Info, Lightbulb } from "lucide-react";
 import { DynamicIcon, getColorClasses } from "@/lib/icon-map";
 import type { ChecklistBlock, ChecklistVariant } from "@/lib/content-blocks";
 
 type VariantConfig = {
   cardClass: string;
-  itemIconName: "CheckCircle2" | "AlertTriangle" | "Info";
+  itemIconName: "CheckCircle2" | "AlertTriangle" | "Info" | "Lightbulb";
   itemIconClass: string;
   itemClass: string;
 };
@@ -35,6 +35,12 @@ const VARIANTS: Record<ChecklistVariant, VariantConfig> = {
     itemIconClass: "text-blue-600",
     itemClass: "",
   },
+  tips: {
+    cardClass: "border-military-gold border-2",
+    itemIconName: "Lightbulb",
+    itemIconClass: "text-military-gold",
+    itemClass: "text-muted-foreground",
+  },
 };
 
 function ItemIcon({
@@ -46,6 +52,7 @@ function ItemIcon({
 }) {
   if (name === "CheckCircle2") return <CheckCircle2 className={className} />;
   if (name === "AlertTriangle") return <AlertTriangle className={className} />;
+  if (name === "Lightbulb") return <Lightbulb className={className} />;
   return <Info className={className} />;
 }
 
