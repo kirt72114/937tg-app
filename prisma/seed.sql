@@ -104,7 +104,7 @@ INSERT INTO "schedules" ("title", "schedule_type", "content", "effective_date", 
 INSERT INTO "pages" ("title", "slug", "content", "meta_description", "page_type", "is_published", "sort_order") VALUES
 -- Primary nav pages
 ('Meet Your Leadership',           'leadership',          '{"blocks":[{"type":"roster","display":"leadership-squadrons","filter":{"profileType":"leadership"}}]}'::jsonb, 'The command team of the 937th Training Group at JBSA-Fort Sam Houston, TX.', 'dynamic', true,  2),
-('Meet Your MTLs',                  'mtls',                NULL, 'Meet the Military Training Leaders supporting Airmen in Training.',                        'dynamic', false, 3),
+('Meet Your MTLs',                  'mtls',                '{"blocks":[{"type":"roster","display":"mtl-cards","filter":{"profileType":"mtl"}}]}'::jsonb, 'Military Training Leaders are the NCOs dedicated to mentoring and developing Airmen in Training.', 'dynamic', true,  3),
 ('METC',                            'metc',                NULL, 'Information about the Medical Education and Training Campus.',                             'static',  false, 4),
 ('Important Phone Numbers',         'phone-numbers',       NULL, 'Key phone numbers for the 937th Training Group and base support services.',                'dynamic', false, 5),
 ('AiT Guide',                       'ait-guide',           NULL, 'Standards, expectations, and guidance for Airmen in Training.',                            'static',  false, 6),

@@ -9,7 +9,7 @@
 INSERT INTO "pages" ("title", "slug", "content", "meta_description", "page_type", "is_published", "sort_order") VALUES
 -- Primary nav pages
 ('Meet Your Leadership',           'leadership',          '{"blocks":[{"type":"roster","display":"leadership-squadrons","filter":{"profileType":"leadership"}}]}'::jsonb, 'The command team of the 937th Training Group at JBSA-Fort Sam Houston, TX.', 'dynamic', true,  2),
-('Meet Your MTLs',                  'mtls',                NULL, 'Meet the Military Training Leaders supporting Airmen in Training.',                        'dynamic', false, 3),
+('Meet Your MTLs',                  'mtls',                '{"blocks":[{"type":"roster","display":"mtl-cards","filter":{"profileType":"mtl"}}]}'::jsonb, 'Military Training Leaders are the NCOs dedicated to mentoring and developing Airmen in Training.', 'dynamic', true,  3),
 ('METC',                            'metc',                NULL, 'Information about the Medical Education and Training Campus.',                             'static',  false, 4),
 ('Important Phone Numbers',         'phone-numbers',       NULL, 'Key phone numbers for the 937th Training Group and base support services.',                'dynamic', false, 5),
 ('AiT Guide',                       'ait-guide',           NULL, 'Standards, expectations, and guidance for Airmen in Training.',                            'static',  false, 6),
@@ -37,13 +37,19 @@ INSERT INTO "pages" ("title", "slug", "content", "meta_description", "page_type"
 ('Links',                           'links',               NULL, 'Curated link collections maintained by the 937 TG admin team.',                            'dynamic', false, 26)
 ON CONFLICT ("slug") DO NOTHING;
 
--- Make sure the Leadership page has the roster block + is published, even
--- on databases where the row was inserted earlier with empty content.
+-- Make sure the Leadership and MTLs pages have roster blocks + are published,
+-- even on databases where the rows were inserted earlier with empty content.
 UPDATE "pages" SET
   "content"          = '{"blocks":[{"type":"roster","display":"leadership-squadrons","filter":{"profileType":"leadership"}}]}'::jsonb,
   "meta_description" = 'The command team of the 937th Training Group at JBSA-Fort Sam Houston, TX.',
   "is_published"     = true
 WHERE "slug" = 'leadership';
+
+UPDATE "pages" SET
+  "content"          = '{"blocks":[{"type":"roster","display":"mtl-cards","filter":{"profileType":"mtl"}}]}'::jsonb,
+  "meta_description" = 'Military Training Leaders are the NCOs dedicated to mentoring and developing Airmen in Training.',
+  "is_published"     = true
+WHERE "slug" = 'mtls';
 
 -- ─── Link existing navigation_items to their pages ────
 
