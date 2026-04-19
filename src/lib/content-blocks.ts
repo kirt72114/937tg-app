@@ -137,6 +137,36 @@ export type ScheduleGridBlock = {
   columns: ScheduleColumn[];
 };
 
+export type DefinitionCardItem = {
+  badge: string;
+  meta?: string;
+  metaIcon?: string;
+  title: string;
+  description: string;
+};
+
+export type DefinitionCardsBlock = {
+  type: "definition-cards";
+  heading?: string;
+  cards: DefinitionCardItem[];
+  columns: 1 | 2 | 3;
+};
+
+export type ProgramTierSection = { title: string; items: string[] };
+
+export type ProgramTierItem = {
+  badge: string;
+  color: string;
+  title: string;
+  description: string;
+  sections: ProgramTierSection[];
+};
+
+export type ProgramTiersBlock = {
+  type: "program-tiers";
+  tiers: ProgramTierItem[];
+};
+
 export type PageBlock =
   | HtmlBlock
   | RosterBlock
@@ -148,7 +178,9 @@ export type PageBlock =
   | HighlightCardBlock
   | PhasesBlock
   | NumberedStepsBlock
-  | ScheduleGridBlock;
+  | ScheduleGridBlock
+  | DefinitionCardsBlock
+  | ProgramTiersBlock;
 
 export type PageBlocksContent = { blocks: PageBlock[] };
 
@@ -227,6 +259,12 @@ function normalizeBlock(value: unknown): PageBlock | null {
 
     case "schedule-grid":
       return Array.isArray(b.columns) ? (b as ScheduleGridBlock) : null;
+
+    case "definition-cards":
+      return Array.isArray(b.cards) ? (b as DefinitionCardsBlock) : null;
+
+    case "program-tiers":
+      return Array.isArray(b.tiers) ? (b as ProgramTiersBlock) : null;
 
     default:
       return null;
@@ -372,6 +410,43 @@ export function createScheduleGridBlock(
         title: "Column",
         badgeVariant: "default",
         rows: [{ label: "Breakfast", value: "0600 - 0800" }],
+      },
+    ],
+  };
+}
+
+export function createDefinitionCardsBlock(
+  defaults: Partial<DefinitionCardsBlock> = {}
+): DefinitionCardsBlock {
+  return {
+    type: "definition-cards",
+    heading: defaults.heading,
+    columns: defaults.columns ?? 2,
+    cards: defaults.cards ?? [
+      {
+        badge: "CODE",
+        title: "Title",
+        description: "Describe this entry.",
+      },
+    ],
+  };
+}
+
+export function createProgramTiersBlock(
+  defaults: Partial<ProgramTiersBlock> = {}
+): ProgramTiersBlock {
+  return {
+    type: "program-tiers",
+    tiers: defaults.tiers ?? [
+      {
+        badge: "Tier 1",
+        color: "blue",
+        title: "Tier title",
+        description: "Describe this tier.",
+        sections: [
+          { title: "Requirements", items: ["First requirement"] },
+          { title: "Responsibilities", items: ["First responsibility"] },
+        ],
       },
     ],
   };

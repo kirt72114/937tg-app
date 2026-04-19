@@ -20,6 +20,8 @@ import {
   ListOrdered,
   Route as RouteIcon,
   CalendarClock,
+  Code2,
+  Trophy,
 } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { InfoCardsEditor } from "@/components/admin/blocks/info-cards-editor";
@@ -31,27 +33,33 @@ import { HighlightCardEditor } from "@/components/admin/blocks/highlight-card-ed
 import { PhasesEditor } from "@/components/admin/blocks/phases-editor";
 import { NumberedStepsEditor } from "@/components/admin/blocks/numbered-steps-editor";
 import { ScheduleGridEditor } from "@/components/admin/blocks/schedule-grid-editor";
+import { DefinitionCardsEditor } from "@/components/admin/blocks/definition-cards-editor";
+import { ProgramTiersEditor } from "@/components/admin/blocks/program-tiers-editor";
 import {
   createChecklistBlock,
   createContactInfoBlock,
   createContactsDirectoryBlock,
+  createDefinitionCardsBlock,
   createHighlightCardBlock,
   createHtmlBlock,
   createInfoCardsBlock,
   createNumberedStepsBlock,
   createPhasesBlock,
+  createProgramTiersBlock,
   createRosterBlock,
   createScheduleGridBlock,
   createStatsBlock,
   type ChecklistBlock,
   type ContactInfoBlock,
   type ContactsDirectoryBlock,
+  type DefinitionCardsBlock,
   type HighlightCardBlock,
   type HtmlBlock,
   type InfoCardsBlock,
   type NumberedStepsBlock,
   type PageBlock,
   type PhasesBlock,
+  type ProgramTiersBlock,
   type RosterBlock,
   type RosterDisplay,
   type RosterProfileType,
@@ -80,6 +88,8 @@ const BLOCK_LABELS: Record<PageBlock["type"], string> = {
   phases: "Phases",
   "numbered-steps": "Numbered Steps",
   "schedule-grid": "Schedule Grid",
+  "definition-cards": "Definition Cards",
+  "program-tiers": "Program Tiers",
 };
 
 interface PageBlocksEditorProps {
@@ -230,6 +240,24 @@ export function PageBlocksEditor({ blocks, onChange }: PageBlocksEditorProps) {
           type="button"
           variant="outline"
           size="sm"
+          onClick={() => add(createDefinitionCardsBlock())}
+        >
+          <Code2 className="h-4 w-4 mr-2" />
+          Add Definition Cards
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => add(createProgramTiersBlock())}
+        >
+          <Trophy className="h-4 w-4 mr-2" />
+          Add Program Tiers
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
           onClick={() => add(createRosterBlock())}
         >
           <Users className="h-4 w-4 mr-2" />
@@ -360,6 +388,18 @@ function BlockCard({
           <ScheduleGridEditor
             block={block}
             onChange={(next: ScheduleGridBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "definition-cards" && (
+          <DefinitionCardsEditor
+            block={block}
+            onChange={(next: DefinitionCardsBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "program-tiers" && (
+          <ProgramTiersEditor
+            block={block}
+            onChange={(next: ProgramTiersBlock) => onChange(next)}
           />
         )}
       </CardContent>

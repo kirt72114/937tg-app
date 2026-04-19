@@ -15,6 +15,8 @@ import { HighlightCardDisplay } from "./highlight-card-display";
 import { PhasesDisplay } from "./phases-display";
 import { NumberedStepsDisplay } from "./numbered-steps-display";
 import { ScheduleGridDisplay } from "./schedule-grid-display";
+import { DefinitionCardsDisplay } from "./definition-cards-display";
+import { ProgramTiersDisplay } from "./program-tiers-display";
 
 const proseClasses =
   "prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-3 [&_li]:my-1 [&_blockquote]:border-l-4 [&_blockquote]:border-military-blue [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:my-4 [&_a]:text-military-blue [&_a]:underline [&_hr]:my-6";
@@ -92,6 +94,10 @@ export async function PageBlocks({ blocks }: { blocks: PageBlock[] }) {
             return <NumberedStepsDisplay key={i} block={block} />;
           case "schedule-grid":
             return <ScheduleGridDisplay key={i} block={block} />;
+          case "definition-cards":
+            return <DefinitionCardsDisplay key={i} block={block} />;
+          case "program-tiers":
+            return <ProgramTiersDisplay key={i} block={block} />;
           default:
             return null;
         }
