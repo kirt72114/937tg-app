@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { PageType } from "@prisma/client";
+import type { PageBlock } from "@/lib/content-blocks";
+import { toBlocksContent } from "@/lib/content-blocks";
 
 export async function getPublishedPages() {
   return prisma.page.findMany({
@@ -26,21 +28,24 @@ export async function getPageById(id: string) {
   return prisma.page.findUnique({ where: { id } });
 }
 
-export async function createPage(data: {
+type PageInput = {
   title: string;
   slug: string;
-  content?: string;
+  blocks?: PageBlock[];
   metaDescription?: string;
   pageType?: PageType;
   externalUrl?: string;
   isPublished?: boolean;
   createdBy?: string;
-}) {
+};
+
+export async function createPage(data: PageInput) {
   const maxOrder = await prisma.page.aggregate({ _max: { sortOrder: true } });
+  const { blocks, ...rest } = data;
   const page = await prisma.page.create({
     data: {
-      ...data,
-      content: data.content ? { html: data.content } : undefined,
+      ...rest,
+      content: blocks ? toBlocksContent(blocks) : undefined,
       sortOrder: (maxOrder._max.sortOrder ?? 0) + 1,
     },
   });
@@ -54,18 +59,19 @@ export async function updatePage(
   data: {
     title?: string;
     slug?: string;
-    content?: string;
+    blocks?: PageBlock[];
     metaDescription?: string;
     pageType?: PageType;
     externalUrl?: string;
     isPublished?: boolean;
   }
 ) {
+  const { blocks, ...rest } = data;
   const page = await prisma.page.update({
     where: { id },
     data: {
-      ...data,
-      content: data.content !== undefined ? { html: data.content } : undefined,
+      ...rest,
+      content: blocks !== undefined ? toBlocksContent(blocks) : undefined,
     },
   });
   revalidatePath("/admin/pages");

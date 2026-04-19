@@ -1,23 +1,6 @@
-import { Metadata } from "next";
-import { PageHeader } from "@/components/shared/page-header";
-import { prisma } from "@/lib/prisma";
 import { getAllSquadrons } from "@/lib/actions/squadrons";
 import { getAllSettings } from "@/lib/actions/settings";
-
-export const dynamic = "force-dynamic";
-
-export const metadata: Metadata = {
-  title: "Meet Your Leadership",
-};
-
-type Leader = {
-  id: string;
-  name: string;
-  rank: string;
-  title: string;
-  unit: string;
-  photoUrl: string | null;
-};
+import type { RosterProfile } from "@/lib/actions/roster";
 
 type Squadron = {
   id: string;
@@ -32,7 +15,6 @@ function squadronAfscs(value: unknown): string[] {
   return Array.isArray(value) ? value.map(String) : [];
 }
 
-// Display order within a squadron — titles listed here appear first, in this order.
 const TITLE_ORDER = [
   "Commander",
   "Deputy Commander",
@@ -41,7 +23,7 @@ const TITLE_ORDER = [
   "First Sergeant",
 ];
 
-function orderLeaders(leaders: Leader[]): Leader[] {
+function orderLeaders(leaders: RosterProfile[]): RosterProfile[] {
   return [...leaders].sort((a, b) => {
     const ai = TITLE_ORDER.indexOf(a.title);
     const bi = TITLE_ORDER.indexOf(b.title);
@@ -98,7 +80,7 @@ function GroupSection({
   groupDescription,
   location,
 }: {
-  leaders: Leader[];
+  leaders: RosterProfile[];
   groupUnit: string;
   groupDescription: string;
   location: string;
@@ -185,7 +167,7 @@ function SquadronSection({
   leaders,
 }: {
   squadron: Squadron;
-  leaders: Leader[];
+  leaders: RosterProfile[];
 }) {
   const ordered = orderLeaders(leaders);
   const commander = ordered.find((l) => l.title === "Commander");
@@ -220,12 +202,7 @@ function SquadronSection({
                 size="lg"
               />
             ) : (
-              <LeaderPhoto
-                name="?"
-                rank=""
-                photoUrl={null}
-                size="lg"
-              />
+              <LeaderPhoto name="?" rank="" photoUrl={null} size="lg" />
             )}
             {others.length > 0 && (
               <div className="flex gap-3 mt-4 flex-wrap">
@@ -268,13 +245,17 @@ function SquadronSection({
                   <h3 className="text-sm font-bold uppercase tracking-wider text-yellow-300">
                     Mission
                   </h3>
-                  <p className="text-sm text-blue-100">{squadron.mission ?? ""}</p>
+                  <p className="text-sm text-blue-100">
+                    {squadron.mission ?? ""}
+                  </p>
                 </div>
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider text-yellow-300">
                     Vision
                   </h3>
-                  <p className="text-sm text-blue-100">{squadron.vision ?? ""}</p>
+                  <p className="text-sm text-blue-100">
+                    {squadron.vision ?? ""}
+                  </p>
                 </div>
               </div>
             </div>
@@ -300,20 +281,12 @@ function SquadronSection({
   );
 }
 
-export default async function LeadershipPage() {
-  const [allLeaders, squadrons, settings] = await Promise.all([
-    prisma.leadershipProfile.findMany({
-      where: { isActive: true, profileType: "leadership" },
-      orderBy: { sortOrder: "asc" },
-      select: {
-        id: true,
-        name: true,
-        rank: true,
-        title: true,
-        unit: true,
-        photoUrl: true,
-      },
-    }),
+export async function LeadershipSquadronsDisplay({
+  profiles,
+}: {
+  profiles: RosterProfile[];
+}) {
+  const [squadrons, settings] = await Promise.all([
     getAllSquadrons(),
     getAllSettings(),
   ]);
@@ -322,33 +295,27 @@ export default async function LeadershipPage() {
   const groupDescription = settings.groupDescription || "";
   const location = settings.location || "JBSA-Fort Sam Houston, TX";
 
-  const groupLeaders = allLeaders.filter((l) => l.unit === groupUnit);
-  const squadronLeaders = squadrons.map((squadron) => ({
+  const groupLeaders = profiles.filter((l) => l.unit === groupUnit);
+  const squadronGroups = squadrons.map((squadron) => ({
     squadron,
-    leaders: allLeaders.filter((l) => l.unit === squadron.unit),
+    leaders: profiles.filter((l) => l.unit === squadron.unit),
   }));
 
   return (
-    <div>
-      <PageHeader
-        title="Meet Your Leadership"
-        description={`The command team of the ${groupUnit} at ${location}.`}
+    <div className="mx-auto max-w-7xl px-4 py-8 space-y-8">
+      <GroupSection
+        leaders={groupLeaders}
+        groupUnit={groupUnit}
+        groupDescription={groupDescription}
+        location={location}
       />
-      <div className="mx-auto max-w-7xl px-4 py-8 space-y-8">
-        <GroupSection
-          leaders={groupLeaders}
-          groupUnit={groupUnit}
-          groupDescription={groupDescription}
-          location={location}
+      {squadronGroups.map(({ squadron, leaders }) => (
+        <SquadronSection
+          key={squadron.id}
+          squadron={squadron}
+          leaders={leaders}
         />
-        {squadronLeaders.map(({ squadron, leaders }) => (
-          <SquadronSection
-            key={squadron.id}
-            squadron={squadron}
-            leaders={leaders}
-          />
-        ))}
-      </div>
+      ))}
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
+import { PageBlocks } from "@/components/public/blocks/page-blocks";
+import { normalizeBlocks } from "@/lib/content-blocks";
 import { getPageBySlug, getPublishedPages } from "@/lib/actions/pages";
 
 export async function generateMetadata({
@@ -24,9 +26,6 @@ export async function generateStaticParams() {
     .map((p) => ({ slug: p.slug }));
 }
 
-const proseClasses =
-  "prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-3 [&_li]:my-1 [&_blockquote]:border-l-4 [&_blockquote]:border-military-blue [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:my-4 [&_a]:text-military-blue [&_a]:underline [&_hr]:my-6";
-
 export default async function DynamicPage({
   params,
 }: {
@@ -40,10 +39,7 @@ export default async function DynamicPage({
     redirect(page.externalUrl);
   }
 
-  const html =
-    page.content && typeof page.content === "object" && "html" in page.content
-      ? String((page.content as { html?: unknown }).html ?? "")
-      : "";
+  const blocks = normalizeBlocks(page.content);
 
   return (
     <div>
@@ -51,18 +47,7 @@ export default async function DynamicPage({
         title={page.title}
         description={page.metaDescription ?? undefined}
       />
-      <div className="mx-auto max-w-4xl px-4 py-8">
-        {html ? (
-          <article
-            className={proseClasses}
-            dangerouslySetInnerHTML={{ __html: html }}
-          />
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            This page has no content yet.
-          </p>
-        )}
-      </div>
+      <PageBlocks blocks={blocks} />
     </div>
   );
 }
