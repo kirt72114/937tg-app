@@ -5,16 +5,38 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ChevronUp, ChevronDown, Trash2, Plus, Users } from "lucide-react";
-import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import {
+  ChevronUp,
+  ChevronDown,
+  Trash2,
+  Users,
+  Text,
+  LayoutGrid,
+  BarChart3,
+  ListChecks,
+  Phone,
+} from "lucide-react";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { InfoCardsEditor } from "@/components/admin/blocks/info-cards-editor";
+import { StatsEditor } from "@/components/admin/blocks/stats-editor";
+import { ChecklistEditor } from "@/components/admin/blocks/checklist-editor";
+import { ContactsDirectoryEditor } from "@/components/admin/blocks/contacts-directory-editor";
+import {
+  createChecklistBlock,
+  createContactsDirectoryBlock,
   createHtmlBlock,
+  createInfoCardsBlock,
   createRosterBlock,
+  createStatsBlock,
+  type ChecklistBlock,
+  type ContactsDirectoryBlock,
   type HtmlBlock,
+  type InfoCardsBlock,
   type PageBlock,
   type RosterBlock,
   type RosterDisplay,
   type RosterProfileType,
+  type StatsBlock,
 } from "@/lib/content-blocks";
 
 const selectClasses =
@@ -25,6 +47,15 @@ const ROSTER_DISPLAYS: { value: RosterDisplay; label: string }[] = [
   { value: "mtl-cards", label: "MTL Cards" },
   { value: "simple-grid", label: "Simple Profile Grid" },
 ];
+
+const BLOCK_LABELS: Record<PageBlock["type"], string> = {
+  html: "Text",
+  roster: "Roster",
+  "info-cards": "Info Cards",
+  stats: "Stats",
+  checklist: "Checklist",
+  "contacts-directory": "Phone Directory",
+};
 
 interface PageBlocksEditorProps {
   blocks: PageBlock[];
@@ -79,15 +110,51 @@ export function PageBlocksEditor({ blocks, onChange }: PageBlocksEditorProps) {
         />
       ))}
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 pt-2">
         <Button
           type="button"
           variant="outline"
           size="sm"
           onClick={() => add(createHtmlBlock())}
         >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Text Block
+          <Text className="h-4 w-4 mr-2" />
+          Add Text
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => add(createInfoCardsBlock())}
+        >
+          <LayoutGrid className="h-4 w-4 mr-2" />
+          Add Info Cards
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => add(createStatsBlock())}
+        >
+          <BarChart3 className="h-4 w-4 mr-2" />
+          Add Stats
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => add(createChecklistBlock())}
+        >
+          <ListChecks className="h-4 w-4 mr-2" />
+          Add Checklist
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => add(createContactsDirectoryBlock())}
+        >
+          <Phone className="h-4 w-4 mr-2" />
+          Add Phone Directory
         </Button>
         <Button
           type="button"
@@ -96,7 +163,7 @@ export function PageBlocksEditor({ blocks, onChange }: PageBlocksEditorProps) {
           onClick={() => add(createRosterBlock())}
         >
           <Users className="h-4 w-4 mr-2" />
-          Add Roster Block
+          Add Roster
         </Button>
       </div>
     </div>
@@ -127,9 +194,7 @@ function BlockCard({
       <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">Block {index + 1}</span>
-          <Badge variant="outline">
-            {block.type === "html" ? "Text" : "Roster"}
-          </Badge>
+          <Badge variant="outline">{BLOCK_LABELS[block.type]}</Badge>
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -167,15 +232,34 @@ function BlockCard({
         </div>
       </CardHeader>
       <CardContent>
-        {block.type === "html" ? (
-          <HtmlBlockFields
+        {block.type === "html" && (
+          <HtmlBlockFields block={block} onChange={onChange} />
+        )}
+        {block.type === "roster" && (
+          <RosterBlockFields block={block} onChange={onChange} />
+        )}
+        {block.type === "info-cards" && (
+          <InfoCardsEditor
             block={block}
-            onChange={(next) => onChange(next)}
+            onChange={(next: InfoCardsBlock) => onChange(next)}
           />
-        ) : (
-          <RosterBlockFields
+        )}
+        {block.type === "stats" && (
+          <StatsEditor
             block={block}
-            onChange={(next) => onChange(next)}
+            onChange={(next: StatsBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "checklist" && (
+          <ChecklistEditor
+            block={block}
+            onChange={(next: ChecklistBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "contacts-directory" && (
+          <ContactsDirectoryEditor
+            block={block}
+            onChange={(next: ContactsDirectoryBlock) => onChange(next)}
           />
         )}
       </CardContent>
@@ -190,8 +274,6 @@ function HtmlBlockFields({
   block: HtmlBlock;
   onChange: (next: HtmlBlock) => void;
 }) {
-  // Tiptap maintains its own internal state. We seed it once with the
-  // initial html and let it stream changes back via onChange.
   const [initialHtml] = useState(block.html);
 
   return (

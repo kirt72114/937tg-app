@@ -1,7 +1,15 @@
-import type { PageBlock, RosterBlock } from "@/lib/content-blocks";
+import type {
+  ContactsDirectoryBlock,
+  PageBlock,
+  RosterBlock,
+} from "@/lib/content-blocks";
 import { getRosterProfiles } from "@/lib/actions/roster";
 import { LeadershipSquadronsDisplay } from "./leadership-squadrons-display";
 import { MtlCardsDisplay } from "./mtl-cards-display";
+import { InfoCardsDisplay } from "./info-cards-display";
+import { StatsDisplay } from "./stats-display";
+import { ChecklistDisplay } from "./checklist-display";
+import { ContactsDirectoryDisplay } from "./contacts-directory-display";
 
 const proseClasses =
   "prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:my-3 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-3 [&_li]:my-1 [&_blockquote]:border-l-4 [&_blockquote]:border-military-blue [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:my-4 [&_a]:text-military-blue [&_a]:underline [&_hr]:my-6";
@@ -29,7 +37,6 @@ async function RosterBlockView({ block }: { block: RosterBlock }) {
     return <MtlCardsDisplay profiles={profiles} />;
   }
 
-  // Other display modes will be added as we migrate the pages that need them.
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <p className="text-sm text-muted-foreground">
@@ -37,6 +44,10 @@ async function RosterBlockView({ block }: { block: RosterBlock }) {
       </p>
     </div>
   );
+}
+
+async function ContactsBlockView({ block }: { block: ContactsDirectoryBlock }) {
+  return <ContactsDirectoryDisplay block={block} />;
 }
 
 export async function PageBlocks({ blocks }: { blocks: PageBlock[] }) {
@@ -53,13 +64,22 @@ export async function PageBlocks({ blocks }: { blocks: PageBlock[] }) {
   return (
     <>
       {blocks.map((block, i) => {
-        if (block.type === "html") {
-          return <HtmlBlockView key={i} html={block.html} />;
+        switch (block.type) {
+          case "html":
+            return <HtmlBlockView key={i} html={block.html} />;
+          case "roster":
+            return <RosterBlockView key={i} block={block} />;
+          case "info-cards":
+            return <InfoCardsDisplay key={i} block={block} />;
+          case "stats":
+            return <StatsDisplay key={i} block={block} />;
+          case "checklist":
+            return <ChecklistDisplay key={i} block={block} />;
+          case "contacts-directory":
+            return <ContactsBlockView key={i} block={block} />;
+          default:
+            return null;
         }
-        if (block.type === "roster") {
-          return <RosterBlockView key={i} block={block} />;
-        }
-        return null;
       })}
     </>
   );

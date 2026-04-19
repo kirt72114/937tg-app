@@ -23,33 +23,45 @@ const categoryColors: Record<string, string> = {
   Transportation: "bg-teal-100 text-teal-700",
 };
 
-export function PhoneDirectory({ contacts }: { contacts: Contact[] }) {
+export function ContactsDirectoryView({
+  contacts,
+  searchable,
+}: {
+  contacts: Contact[];
+  searchable: boolean;
+}) {
   const [search, setSearch] = useState("");
 
-  const filtered = contacts.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search) ||
-      c.category.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = searchable
+    ? contacts.filter(
+        (c) =>
+          c.name.toLowerCase().includes(search.toLowerCase()) ||
+          c.phone.includes(search) ||
+          c.category.toLowerCase().includes(search.toLowerCase())
+      )
+    : contacts;
 
   const categories = [...new Set(filtered.map((c) => c.category))];
 
   return (
     <div className="space-y-6">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by name, number, or category..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
-      </div>
+      {searchable && (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, number, or category..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      )}
 
       {categories.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
-          No contacts found matching &quot;{search}&quot;
+          {search
+            ? `No contacts found matching "${search}"`
+            : "No contacts available."}
         </div>
       )}
 
@@ -57,7 +69,11 @@ export function PhoneDirectory({ contacts }: { contacts: Contact[] }) {
         <Card key={category}>
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
-              <Badge className={categoryColors[category] || "bg-gray-100 text-gray-700"}>
+              <Badge
+                className={
+                  categoryColors[category] || "bg-gray-100 text-gray-700"
+                }
+              >
                 {category}
               </Badge>
               <CardTitle className="text-base">{category}</CardTitle>
