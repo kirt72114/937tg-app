@@ -96,30 +96,65 @@ INSERT INTO "schedules" ("title", "schedule_type", "content", "effective_date", 
 ('Rocco DFAC - Weekend/Holiday Hours', 'dfac', '{"meals": [{"name": "Brunch", "hours": "0800-1000"}, {"name": "Dinner", "hours": "1700-1830"}]}', '2026-04-01', true),
 ('JBSA Shuttle Route A', 'shuttle', '{"stops": ["Main Gate", "BX/Commissary", "BAMC", "METC Campus", "Dorms"], "frequency": "Every 30 min", "hours": "0600-2200"}', '2026-04-01', true);
 
+-- ─── Pages (CMS Library) ──────────────────────────────
+-- Seed entries for every existing site page so admins can manage them
+-- through the CMS. Content is left empty until the per-page functionality
+-- is migrated into the pages library one by one.
+
+INSERT INTO "pages" ("title", "slug", "meta_description", "page_type", "is_published", "sort_order") VALUES
+-- Primary nav pages
+('Meet Your Leadership',           'leadership',          'Meet the leaders of the 937th Training Group and its squadrons.',                          'dynamic', false, 2),
+('Meet Your MTLs',                  'mtls',                'Meet the Military Training Leaders supporting Airmen in Training.',                        'dynamic', false, 3),
+('METC',                            'metc',                'Information about the Medical Education and Training Campus.',                             'static',  false, 4),
+('Important Phone Numbers',         'phone-numbers',       'Key phone numbers for the 937th Training Group and base support services.',                'dynamic', false, 5),
+('AiT Guide',                       'ait-guide',           'Standards, expectations, and guidance for Airmen in Training.',                            'static',  false, 6),
+('Area Defense Counsel',            'adc',                 'Confidential legal counsel for Airmen facing adverse actions.',                            'static',  false, 7),
+('Military OneSource',              'military-onesource',  'Access to counseling, financial, legal, and wellness support for service members.',        'static',  false, 8),
+('Finance',                         'finance',             'Pay, travel, and entitlements support from the base finance office.',                      'static',  false, 9),
+('In-Processing',                   'in-processing',       'Step-by-step checklist for arriving Airmen.',                                              'static',  false, 10),
+('Out-Processing',                  'out-processing',      'Step-by-step checklist for departing Airmen.',                                             'static',  false, 11),
+('Locations',                       'locations',           'Key facilities and locations on and around JBSA-Fort Sam Houston.',                        'dynamic', false, 12),
+('Submit a Work Order',             'work-orders',         'Submit a maintenance request for the dormitories and 937 TG facilities.',                  'dynamic', false, 13),
+-- More section pages
+('Work Order Status',               'work-order-status',   'Look up the status of a previously submitted work order.',                                 'dynamic', false, 14),
+('DFAC Hours',                      'dfac-hours',          'Rocco Dining Facility meal hours for weekdays, weekends, and holidays.',                   'static',  false, 15),
+('Shuttle Route',                   'shuttle',             'JBSA shuttle stops, schedule, and operating hours.',                                       'static',  false, 16),
+('Route of March',                  'route-of-march',      'Approved formation route from the dormitories to the METC campus.',                        'static',  false, 17),
+('Air Force Specialty Codes',       'afscs',               'Medical AFSCs trained at the 937th Training Group.',                                       'static',  false, 18),
+('Exceptional Family Member Program','efmp',               'EFMP services, contacts, and resources for service members and families.',                 'static',  false, 19),
+('Airman Leadership Programs',      'leadership-programs', 'Green, Yellow, and Red Rope program requirements and responsibilities.',                  'static',  false, 20),
+('Spartan Flight / CQ',             'spartan-flight',      'Charge of Quarters duty details, shifts, and responsibilities.',                           'static',  false, 21),
+('SAFEREP',                         'saferep',             'Safety reporting program — what to report and how to reach the safety office.',           'static',  false, 22),
+('JBSA Connect',                    'jbsa-connect',        'Curated links to official JBSA resources and tenant organizations.',                       'static',  false, 23),
+('Share This App',                  'share',               'Share the 937 TG app with peers and install it on your device.',                           'static',  false, 24),
+-- Additional pages not in primary navigation
+('Files & Downloads',               'files',               'Documents, forms, and resources available for download.',                                  'dynamic', false, 25),
+('Links',                           'links',               'Curated link collections maintained by the 937 TG admin team.',                            'dynamic', false, 26);
+
 -- ─── Navigation Items ─────────────────────────────────
 
-INSERT INTO "navigation_items" ("label", "href", "icon", "section", "sort_order") VALUES
-('Home', '/', 'Home', 'primary', 1),
-('Meet Your Leadership', '/leadership', 'Users', 'primary', 2),
-('Meet Your MTLs', '/mtls', 'UserCheck', 'primary', 3),
-('METC', '/metc', 'GraduationCap', 'primary', 4),
-('Important Phone Numbers', '/phone-numbers', 'Phone', 'primary', 5),
-('AiT Guide', '/ait-guide', 'BookOpen', 'primary', 6),
-('ADC', '/adc', 'Scale', 'primary', 7),
-('Military OneSource', '/military-onesource', 'Globe', 'primary', 8),
-('Finance', '/finance', 'DollarSign', 'primary', 9),
-('In-Processing', '/in-processing', 'LogIn', 'primary', 10),
-('Out-Processing', '/out-processing', 'LogOut', 'primary', 11),
-('Locations', '/locations', 'MapPin', 'primary', 12),
-('Work Orders', '/work-orders', 'ClipboardList', 'primary', 13),
-('Work Order Status', '/work-orders/status', 'Search', 'more', 14),
-('DFAC Hours', '/dfac-hours', 'UtensilsCrossed', 'more', 15),
-('Shuttle Route', '/shuttle', 'Bus', 'more', 16),
-('Route of March', '/route-of-march', 'Route', 'more', 17),
-('AFSCs', '/afscs', 'BadgeInfo', 'more', 18),
-('EFMP', '/efmp', 'HeartHandshake', 'more', 19),
-('Airman Leadership Programs', '/leadership-programs', 'Award', 'more', 20),
-('Spartan Flight/CQ', '/spartan-flight', 'Shield', 'more', 21),
-('SAFEREP', '/saferep', 'ShieldAlert', 'more', 22),
-('JBSA Connect', '/jbsa-connect', 'Link', 'more', 23),
-('Share App', '/share', 'Share2', 'more', 24);
+INSERT INTO "navigation_items" ("label", "href", "icon", "section", "sort_order", "page_id") VALUES
+('Home',                       '/',                    'Home',            'primary', 1,  NULL),
+('Meet Your Leadership',       '/leadership',          'Users',           'primary', 2,  (SELECT id FROM "pages" WHERE slug = 'leadership')),
+('Meet Your MTLs',             '/mtls',                'UserCheck',       'primary', 3,  (SELECT id FROM "pages" WHERE slug = 'mtls')),
+('METC',                       '/metc',                'GraduationCap',   'primary', 4,  (SELECT id FROM "pages" WHERE slug = 'metc')),
+('Important Phone Numbers',    '/phone-numbers',       'Phone',           'primary', 5,  (SELECT id FROM "pages" WHERE slug = 'phone-numbers')),
+('AiT Guide',                  '/ait-guide',           'BookOpen',        'primary', 6,  (SELECT id FROM "pages" WHERE slug = 'ait-guide')),
+('ADC',                        '/adc',                 'Scale',           'primary', 7,  (SELECT id FROM "pages" WHERE slug = 'adc')),
+('Military OneSource',         '/military-onesource',  'Globe',           'primary', 8,  (SELECT id FROM "pages" WHERE slug = 'military-onesource')),
+('Finance',                    '/finance',             'DollarSign',      'primary', 9,  (SELECT id FROM "pages" WHERE slug = 'finance')),
+('In-Processing',              '/in-processing',       'LogIn',           'primary', 10, (SELECT id FROM "pages" WHERE slug = 'in-processing')),
+('Out-Processing',             '/out-processing',      'LogOut',          'primary', 11, (SELECT id FROM "pages" WHERE slug = 'out-processing')),
+('Locations',                  '/locations',           'MapPin',          'primary', 12, (SELECT id FROM "pages" WHERE slug = 'locations')),
+('Work Orders',                '/work-orders',         'ClipboardList',   'primary', 13, (SELECT id FROM "pages" WHERE slug = 'work-orders')),
+('Work Order Status',          '/work-orders/status',  'Search',          'more',    14, (SELECT id FROM "pages" WHERE slug = 'work-order-status')),
+('DFAC Hours',                 '/dfac-hours',          'UtensilsCrossed', 'more',    15, (SELECT id FROM "pages" WHERE slug = 'dfac-hours')),
+('Shuttle Route',              '/shuttle',             'Bus',             'more',    16, (SELECT id FROM "pages" WHERE slug = 'shuttle')),
+('Route of March',             '/route-of-march',      'Route',           'more',    17, (SELECT id FROM "pages" WHERE slug = 'route-of-march')),
+('AFSCs',                      '/afscs',               'BadgeInfo',       'more',    18, (SELECT id FROM "pages" WHERE slug = 'afscs')),
+('EFMP',                       '/efmp',                'HeartHandshake',  'more',    19, (SELECT id FROM "pages" WHERE slug = 'efmp')),
+('Airman Leadership Programs', '/leadership-programs', 'Award',           'more',    20, (SELECT id FROM "pages" WHERE slug = 'leadership-programs')),
+('Spartan Flight/CQ',          '/spartan-flight',      'Shield',          'more',    21, (SELECT id FROM "pages" WHERE slug = 'spartan-flight')),
+('SAFEREP',                    '/saferep',             'ShieldAlert',     'more',    22, (SELECT id FROM "pages" WHERE slug = 'saferep')),
+('JBSA Connect',               '/jbsa-connect',        'Link',            'more',    23, (SELECT id FROM "pages" WHERE slug = 'jbsa-connect')),
+('Share App',                  '/share',               'Share2',          'more',    24, (SELECT id FROM "pages" WHERE slug = 'share'));
