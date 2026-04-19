@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { IconPicker, ColorPicker } from "./icon-color-pickers";
-import type { ChecklistBlock, ChecklistVariant } from "@/lib/content-blocks";
+import type {
+  ChecklistBlock,
+  ChecklistItem,
+  ChecklistVariant,
+} from "@/lib/content-blocks";
 
 const selectClasses =
   "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
@@ -23,9 +27,9 @@ export function ChecklistEditor({
   block: ChecklistBlock;
   onChange: (next: ChecklistBlock) => void;
 }) {
-  function updateItem(index: number, value: string) {
+  function updateItem(index: number, patch: Partial<ChecklistItem>) {
     const next = block.items.slice();
-    next[index] = value;
+    next[index] = { ...next[index], ...patch };
     onChange({ ...block, items: next });
   }
 
@@ -42,7 +46,7 @@ export function ChecklistEditor({
   }
 
   function addItem() {
-    onChange({ ...block, items: [...block.items, ""] });
+    onChange({ ...block, items: [...block.items, { text: "" }] });
   }
 
   return (
@@ -94,14 +98,27 @@ export function ChecklistEditor({
             key={i}
             className="flex items-start gap-2 rounded-md border bg-muted/30 p-3"
           >
-            <div className="flex-1">
-              <textarea
-                value={item}
-                onChange={(e) => updateItem(i, e.target.value)}
-                placeholder={`Item ${i + 1}`}
-                rows={2}
-                className={`${selectClasses} h-auto resize-y`}
-              />
+            <div className="flex-1 space-y-2">
+              <div className="space-y-1">
+                <label className="text-xs font-medium">Item {i + 1}</label>
+                <Input
+                  value={item.text}
+                  onChange={(e) => updateItem(i, { text: e.target.value })}
+                  placeholder="Main text"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">
+                  Sub-text (optional)
+                </label>
+                <Input
+                  value={item.subtext ?? ""}
+                  onChange={(e) =>
+                    updateItem(i, { subtext: e.target.value || undefined })
+                  }
+                  placeholder="Smaller details shown under the main text"
+                />
+              </div>
             </div>
             <div className="flex flex-col gap-1">
               <Button

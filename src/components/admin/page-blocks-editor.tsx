@@ -15,21 +15,29 @@ import {
   BarChart3,
   ListChecks,
   Phone,
+  Contact,
+  Star,
 } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { InfoCardsEditor } from "@/components/admin/blocks/info-cards-editor";
 import { StatsEditor } from "@/components/admin/blocks/stats-editor";
 import { ChecklistEditor } from "@/components/admin/blocks/checklist-editor";
 import { ContactsDirectoryEditor } from "@/components/admin/blocks/contacts-directory-editor";
+import { ContactInfoEditor } from "@/components/admin/blocks/contact-info-editor";
+import { HighlightCardEditor } from "@/components/admin/blocks/highlight-card-editor";
 import {
   createChecklistBlock,
+  createContactInfoBlock,
   createContactsDirectoryBlock,
+  createHighlightCardBlock,
   createHtmlBlock,
   createInfoCardsBlock,
   createRosterBlock,
   createStatsBlock,
   type ChecklistBlock,
+  type ContactInfoBlock,
   type ContactsDirectoryBlock,
+  type HighlightCardBlock,
   type HtmlBlock,
   type InfoCardsBlock,
   type PageBlock,
@@ -55,6 +63,8 @@ const BLOCK_LABELS: Record<PageBlock["type"], string> = {
   stats: "Stats",
   checklist: "Checklist",
   "contacts-directory": "Phone Directory",
+  "contact-info": "Contact Info",
+  "highlight-card": "Highlight Card",
 };
 
 interface PageBlocksEditorProps {
@@ -146,6 +156,24 @@ export function PageBlocksEditor({ blocks, onChange }: PageBlocksEditorProps) {
         >
           <ListChecks className="h-4 w-4 mr-2" />
           Add Checklist
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => add(createContactInfoBlock())}
+        >
+          <Contact className="h-4 w-4 mr-2" />
+          Add Contact Info
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => add(createHighlightCardBlock())}
+        >
+          <Star className="h-4 w-4 mr-2" />
+          Add Highlight
         </Button>
         <Button
           type="button"
@@ -260,6 +288,18 @@ function BlockCard({
           <ContactsDirectoryEditor
             block={block}
             onChange={(next: ContactsDirectoryBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "contact-info" && (
+          <ContactInfoEditor
+            block={block}
+            onChange={(next: ContactInfoBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "highlight-card" && (
+          <HighlightCardEditor
+            block={block}
+            onChange={(next: HighlightCardBlock) => onChange(next)}
           />
         )}
       </CardContent>

@@ -67,14 +67,21 @@ export function ChecklistDisplay({ block }: { block: ChecklistBlock }) {
           </div>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-2.5">
+          <ul className="space-y-3">
             {block.items.map((item, i) => (
               <li key={i} className="flex items-start gap-2.5 text-sm">
                 <ItemIcon
                   name={variant.itemIconName}
                   className={`h-4 w-4 shrink-0 mt-0.5 ${variant.itemIconClass}`}
                 />
-                <span className={variant.itemClass}>{item}</span>
+                <div className="flex-1">
+                  <p className={variant.itemClass}>{item.text}</p>
+                  {item.subtext && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {item.subtext}
+                    </p>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
