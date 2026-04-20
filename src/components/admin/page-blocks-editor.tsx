@@ -22,6 +22,9 @@ import {
   CalendarClock,
   Code2,
   Trophy,
+  MapPinned,
+  Folder,
+  LinkIcon,
 } from "lucide-react";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { InfoCardsEditor } from "@/components/admin/blocks/info-cards-editor";
@@ -35,14 +38,20 @@ import { NumberedStepsEditor } from "@/components/admin/blocks/numbered-steps-ed
 import { ScheduleGridEditor } from "@/components/admin/blocks/schedule-grid-editor";
 import { DefinitionCardsEditor } from "@/components/admin/blocks/definition-cards-editor";
 import { ProgramTiersEditor } from "@/components/admin/blocks/program-tiers-editor";
+import { LocationsDirectoryEditor } from "@/components/admin/blocks/locations-directory-editor";
+import { FilesListEditor } from "@/components/admin/blocks/files-list-editor";
+import { LinkCollectionsListEditor } from "@/components/admin/blocks/link-collections-list-editor";
 import {
   createChecklistBlock,
   createContactInfoBlock,
   createContactsDirectoryBlock,
   createDefinitionCardsBlock,
+  createFilesListBlock,
   createHighlightCardBlock,
   createHtmlBlock,
   createInfoCardsBlock,
+  createLinkCollectionsListBlock,
+  createLocationsDirectoryBlock,
   createNumberedStepsBlock,
   createPhasesBlock,
   createProgramTiersBlock,
@@ -53,9 +62,12 @@ import {
   type ContactInfoBlock,
   type ContactsDirectoryBlock,
   type DefinitionCardsBlock,
+  type FilesListBlock,
   type HighlightCardBlock,
   type HtmlBlock,
   type InfoCardsBlock,
+  type LinkCollectionsListBlock,
+  type LocationsDirectoryBlock,
   type NumberedStepsBlock,
   type PageBlock,
   type PhasesBlock,
@@ -90,6 +102,9 @@ const BLOCK_LABELS: Record<PageBlock["type"], string> = {
   "schedule-grid": "Schedule Grid",
   "definition-cards": "Definition Cards",
   "program-tiers": "Program Tiers",
+  "locations-directory": "Locations",
+  "files-list": "Files List",
+  "link-collections-list": "Link Collections",
 };
 
 interface PageBlocksEditorProps {
@@ -258,6 +273,33 @@ export function PageBlocksEditor({ blocks, onChange }: PageBlocksEditorProps) {
           type="button"
           variant="outline"
           size="sm"
+          onClick={() => add(createLocationsDirectoryBlock())}
+        >
+          <MapPinned className="h-4 w-4 mr-2" />
+          Add Locations
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => add(createFilesListBlock())}
+        >
+          <Folder className="h-4 w-4 mr-2" />
+          Add Files List
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => add(createLinkCollectionsListBlock())}
+        >
+          <LinkIcon className="h-4 w-4 mr-2" />
+          Add Link Collections
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
           onClick={() => add(createRosterBlock())}
         >
           <Users className="h-4 w-4 mr-2" />
@@ -400,6 +442,24 @@ function BlockCard({
           <ProgramTiersEditor
             block={block}
             onChange={(next: ProgramTiersBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "locations-directory" && (
+          <LocationsDirectoryEditor
+            block={block}
+            onChange={(next: LocationsDirectoryBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "files-list" && (
+          <FilesListEditor
+            block={block}
+            onChange={(next: FilesListBlock) => onChange(next)}
+          />
+        )}
+        {block.type === "link-collections-list" && (
+          <LinkCollectionsListEditor
+            block={block}
+            onChange={(next: LinkCollectionsListBlock) => onChange(next)}
           />
         )}
       </CardContent>

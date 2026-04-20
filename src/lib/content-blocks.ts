@@ -167,6 +167,26 @@ export type ProgramTiersBlock = {
   tiers: ProgramTierItem[];
 };
 
+export type LocationsDirectoryBlock = {
+  type: "locations-directory";
+  heading?: string;
+  categories?: string[];
+  columns: 1 | 2 | 3;
+};
+
+export type FilesListBlock = {
+  type: "files-list";
+  heading?: string;
+  columns: 1 | 2 | 3;
+};
+
+export type LinkCollectionsListBlock = {
+  type: "link-collections-list";
+  heading?: string;
+  columns: 1 | 2 | 3;
+  hideReserved: boolean;
+};
+
 export type PageBlock =
   | HtmlBlock
   | RosterBlock
@@ -180,7 +200,10 @@ export type PageBlock =
   | NumberedStepsBlock
   | ScheduleGridBlock
   | DefinitionCardsBlock
-  | ProgramTiersBlock;
+  | ProgramTiersBlock
+  | LocationsDirectoryBlock
+  | FilesListBlock
+  | LinkCollectionsListBlock;
 
 export type PageBlocksContent = { blocks: PageBlock[] };
 
@@ -265,6 +288,15 @@ function normalizeBlock(value: unknown): PageBlock | null {
 
     case "program-tiers":
       return Array.isArray(b.tiers) ? (b as ProgramTiersBlock) : null;
+
+    case "locations-directory":
+      return b as LocationsDirectoryBlock;
+
+    case "files-list":
+      return b as FilesListBlock;
+
+    case "link-collections-list":
+      return b as LinkCollectionsListBlock;
 
     default:
       return null;
@@ -429,6 +461,38 @@ export function createDefinitionCardsBlock(
         description: "Describe this entry.",
       },
     ],
+  };
+}
+
+export function createLocationsDirectoryBlock(
+  defaults: Partial<LocationsDirectoryBlock> = {}
+): LocationsDirectoryBlock {
+  return {
+    type: "locations-directory",
+    heading: defaults.heading,
+    categories: defaults.categories,
+    columns: defaults.columns ?? 3,
+  };
+}
+
+export function createFilesListBlock(
+  defaults: Partial<FilesListBlock> = {}
+): FilesListBlock {
+  return {
+    type: "files-list",
+    heading: defaults.heading,
+    columns: defaults.columns ?? 3,
+  };
+}
+
+export function createLinkCollectionsListBlock(
+  defaults: Partial<LinkCollectionsListBlock> = {}
+): LinkCollectionsListBlock {
+  return {
+    type: "link-collections-list",
+    heading: defaults.heading,
+    columns: defaults.columns ?? 3,
+    hideReserved: defaults.hideReserved ?? true,
   };
 }
 
