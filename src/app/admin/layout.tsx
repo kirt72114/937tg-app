@@ -19,6 +19,8 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
+  Award,
+  BadgeInfo,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -41,6 +43,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   FolderOpen,
   UserCog,
   Settings,
+  Award,
+  BadgeInfo,
 };
 
 const adminNavItems = [
@@ -53,6 +57,8 @@ const adminNavItems = [
   { label: "Locations", href: "/admin/locations", icon: "MapPin" },
   { label: "Work Orders", href: "/admin/work-orders", icon: "ClipboardList" },
   { label: "Schedules", href: "/admin/schedules", icon: "Calendar" },
+  { label: "Rope Programs", href: "/admin/rope-programs", icon: "Award" },
+  { label: "AFSCs", href: "/admin/afscs", icon: "BadgeInfo" },
   { label: "Links", href: "/admin/links", icon: "Link" },
   { label: "Navigation", href: "/admin/navigation", icon: "Menu" },
   { label: "Files", href: "/admin/files", icon: "FolderOpen" },
