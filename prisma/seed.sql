@@ -1,6 +1,15 @@
 -- 937th Training Group Seed Data
 -- Run this in Supabase SQL Editor AFTER init.sql
 
+-- Prisma's @updatedAt is ORM-side only — if the tables were created via
+-- `prisma migrate` the updated_at columns have no DB default, so raw SQL
+-- INSERTs below would fail. Re-establish defaults on every table whose
+-- updated_at we depend on here.
+ALTER TABLE "pages"               ALTER COLUMN "updated_at" SET DEFAULT now();
+ALTER TABLE "announcements"       ALTER COLUMN "updated_at" SET DEFAULT now();
+ALTER TABLE "leadership_profiles" ALTER COLUMN "updated_at" SET DEFAULT now();
+ALTER TABLE "schedules"           ALTER COLUMN "updated_at" SET DEFAULT now();
+
 -- ─── Contacts (Phone Directory) ───────────────────────
 
 INSERT INTO "contacts" ("name", "phone", "category", "sort_order") VALUES

@@ -4,6 +4,13 @@
 -- Use this on a database that already has navigation_items seeded but
 -- no rows in the pages table. Idempotent via ON CONFLICT (slug).
 
+-- Prisma's @updatedAt is ORM-side only — if the table was created via
+-- `prisma migrate` the DB column has NO default, so raw INSERTs fail with
+-- "null value in column \"updated_at\"". Re-establish the default so this
+-- script (and any future raw SQL seeds) can omit the column safely.
+ALTER TABLE "pages"
+  ALTER COLUMN "updated_at" SET DEFAULT now();
+
 -- ─── Pages (CMS Library) ──────────────────────────────
 
 INSERT INTO "pages" ("title", "slug", "content", "meta_description", "page_type", "is_published", "sort_order") VALUES
