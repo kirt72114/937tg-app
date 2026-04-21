@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ImagePicker } from "@/components/admin/image-picker";
 import { Save, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getAllSettings, saveSettings } from "@/lib/actions/settings";
@@ -55,6 +56,7 @@ export default function AdminSettingsPage() {
   const [mission, setMission] = useState("");
   const [vision, setVision] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
+  const [groupLogoUrl, setGroupLogoUrl] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#1a3a6b");
   const [accentColor, setAccentColor] = useState("#c5a04e");
   const [navyColor, setNavyColor] = useState("#0f2444");
@@ -72,6 +74,7 @@ export default function AdminSettingsPage() {
       setMission(settings.mission || "");
       setVision(settings.vision || "");
       setGroupDescription(settings.groupDescription || "");
+      setGroupLogoUrl(settings.groupLogoUrl || "");
       setPrimaryColor(settings.primaryColor || "#1a3a6b");
       setAccentColor(settings.accentColor || "#c5a04e");
       setNavyColor(settings.navyColor || "#0f2444");
@@ -95,6 +98,7 @@ export default function AdminSettingsPage() {
         mission,
         vision,
         groupDescription,
+        groupLogoUrl,
         primaryColor,
         accentColor,
         navyColor,
@@ -226,6 +230,20 @@ export default function AdminSettingsPage() {
               <p className="text-xs text-muted-foreground">
                 Long-form description shown in the group section of the
                 Leadership page. Blank lines create paragraph breaks.
+              </p>
+            </div>
+            <div className="space-y-1.5">
+              <ImagePicker
+                value={groupLogoUrl}
+                onChange={setGroupLogoUrl}
+                folder="squadrons"
+                label="Group Patch"
+                placeholder="/images/squadrons/937tg.png"
+              />
+              <p className="text-xs text-muted-foreground">
+                Patch shown in the banner of the 937th Training Group leadership
+                page. If blank, an &ldquo;Image Missing&rdquo; placeholder is
+                rendered.
               </p>
             </div>
             <div className="space-y-1.5">

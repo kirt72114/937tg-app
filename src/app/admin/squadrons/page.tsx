@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/admin/data-table";
+import { ImagePicker } from "@/components/admin/image-picker";
 import { Plus, X, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -22,6 +23,7 @@ type Squadron = {
   mission: string | null;
   vision: string | null;
   afscs: unknown;
+  logoUrl: string | null;
   sortOrder: number;
 };
 
@@ -31,6 +33,7 @@ type FormState = {
   mission: string;
   vision: string;
   afscs: string;
+  logoUrl: string;
 };
 
 const emptyForm: FormState = {
@@ -39,6 +42,7 @@ const emptyForm: FormState = {
   mission: "",
   vision: "",
   afscs: "",
+  logoUrl: "",
 };
 
 const textareaClasses =
@@ -107,6 +111,7 @@ export default function AdminSquadronsPage() {
       mission: s.mission || "",
       vision: s.vision || "",
       afscs: afscsToList(s.afscs).join("\n"),
+      logoUrl: s.logoUrl || "",
     });
     setEditingId(s.id);
     setShowForm(true);
@@ -133,6 +138,7 @@ export default function AdminSquadronsPage() {
           mission: form.mission,
           vision: form.vision,
           afscs,
+          logoUrl: form.logoUrl,
         });
       } else {
         await createSquadron({
@@ -141,6 +147,7 @@ export default function AdminSquadronsPage() {
           mission: form.mission || undefined,
           vision: form.vision || undefined,
           afscs,
+          logoUrl: form.logoUrl || undefined,
         });
       }
       close();
@@ -238,6 +245,15 @@ export default function AdminSquadronsPage() {
                 value={form.motto}
                 onChange={(e) => setForm({ ...form, motto: e.target.value })}
                 placeholder="Forge to Excellence and Commitment"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <ImagePicker
+                value={form.logoUrl}
+                onChange={(url) => setForm({ ...form, logoUrl: url })}
+                folder="squadrons"
+                label="Squadron Patch"
+                placeholder="/images/squadrons/381st.png"
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

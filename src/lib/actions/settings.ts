@@ -21,6 +21,7 @@ The group's mission extends to overseeing the completion of Phase II initial ski
   navyColor: "#0f2444",
   lightColor: "#f0f4f8",
   footerText: "",
+  groupLogoUrl: "",
 };
 
 export async function getAllSettings(): Promise<Record<string, string>> {

@@ -19,6 +19,7 @@ export async function createSquadron(data: {
   mission?: string;
   vision?: string;
   afscs?: string[];
+  logoUrl?: string;
 }) {
   const maxOrder = await prisma.squadron.aggregate({ _max: { sortOrder: true } });
   const squadron = await prisma.squadron.create({
@@ -28,6 +29,7 @@ export async function createSquadron(data: {
       mission: data.mission,
       vision: data.vision,
       afscs: data.afscs ?? [],
+      logoUrl: data.logoUrl,
       sortOrder: (maxOrder._max.sortOrder ?? 0) + 1,
     },
   });
@@ -44,6 +46,7 @@ export async function updateSquadron(
     mission?: string;
     vision?: string;
     afscs?: string[];
+    logoUrl?: string;
   }
 ) {
   const squadron = await prisma.squadron.update({

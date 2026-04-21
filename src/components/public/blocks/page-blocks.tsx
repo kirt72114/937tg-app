@@ -37,11 +37,11 @@ function HtmlBlockView({ html }: { html: string }) {
 }
 
 async function RosterBlockView({ block }: { block: RosterBlock }) {
-  const profiles = await getRosterProfiles(block.filter);
-
   if (block.display === "leadership-squadrons") {
-    return <LeadershipSquadronsDisplay profiles={profiles} />;
+    return <LeadershipSquadronsDisplay />;
   }
+
+  const profiles = await getRosterProfiles(block.filter);
 
   if (block.display === "mtl-cards") {
     return <MtlCardsDisplay profiles={profiles} />;
