@@ -36,6 +36,7 @@ import {
   Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NavLink } from "@/components/shared/nav-link";
 import {
   Sheet,
   SheetContent,
@@ -136,14 +137,14 @@ export function Header({
           {primaryItems.slice(0, 7).map((item) => {
             const Icon = item.icon ? iconMap[item.icon] : null;
             return (
-              <Link
+              <NavLink
                 key={item.href}
                 href={item.href}
                 className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm text-gray-200 hover:bg-military-blue hover:text-white transition-colors"
               >
                 {Icon && <Icon className="h-4 w-4" />}
                 <span className="hidden xl:inline">{item.label}</span>
-              </Link>
+              </NavLink>
             );
           })}
 
@@ -170,7 +171,7 @@ export function Header({
                       (item) => {
                         const Icon = item.icon ? iconMap[item.icon] : null;
                         return (
-                          <Link
+                          <NavLink
                             key={item.href}
                             href={item.href}
                             onClick={() => setMoreOpen(false)}
@@ -180,7 +181,7 @@ export function Header({
                               <Icon className="h-4 w-4 text-military-blue" />
                             )}
                             {item.label}
-                          </Link>
+                          </NavLink>
                         );
                       }
                     )}
@@ -225,7 +226,7 @@ export function Header({
                 {primaryItems.map((item) => {
                   const Icon = item.icon ? iconMap[item.icon] : null;
                   return (
-                    <Link
+                    <NavLink
                       key={item.href}
                       href={item.href}
                       onClick={() => setMobileOpen(false)}
@@ -233,7 +234,7 @@ export function Header({
                     >
                       {Icon && <Icon className="h-4 w-4 text-military-gold" />}
                       {item.label}
-                    </Link>
+                    </NavLink>
                   );
                 })}
 
@@ -246,7 +247,7 @@ export function Header({
                     {moreItems.map((item) => {
                       const Icon = item.icon ? iconMap[item.icon] : null;
                       return (
-                        <Link
+                        <NavLink
                           key={item.href}
                           href={item.href}
                           onClick={() => setMobileOpen(false)}
@@ -254,7 +255,7 @@ export function Header({
                         >
                           {Icon && <Icon className="h-4 w-4 text-military-gold" />}
                           {item.label}
-                        </Link>
+                        </NavLink>
                       );
                     })}
                   </>
