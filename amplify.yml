@@ -8,6 +8,10 @@ frontend:
         - npx prisma generate
     build:
       commands:
+        # Amplify exposes app env vars at build time only. Bake the server-only
+        # vars into .env.production so Next.js includes them in the SSR bundle
+        # that runs in the Amplify Lambda at runtime.
+        - env | grep -E '^(DATABASE_URL|SUPABASE_SERVICE_ROLE_KEY)=' >> .env.production
         - npm run build
   artifacts:
     baseDirectory: .next

@@ -9,7 +9,18 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    // During build when DATABASE_URL isn't available, return a stub
+    // DATABASE_URL is expected to be missing during `next build` (static
+    // analysis phase), so return a stub that resolves everything to an empty
+    // array instead of throwing. Log loudly at runtime so a misconfigured
+    // deployment (e.g. Amplify not exposing server env vars to the SSR
+    // Lambda) doesn't silently serve empty pages.
+    if (process.env.NEXT_PHASE !== "phase-production-build") {
+      console.error(
+        "[prisma] DATABASE_URL is not set at runtime — every query will " +
+          "return an empty result. Check your deployment's environment " +
+          "configuration."
+      );
+    }
     return new Proxy({} as PrismaClient, {
       get(target, prop) {
         if (prop === "$connect" || prop === "$disconnect") {
