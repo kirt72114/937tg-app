@@ -3,7 +3,12 @@ import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { PageBlocks } from "@/components/public/blocks/page-blocks";
 import { normalizeBlocks } from "@/lib/content-blocks";
-import { getPageBySlug, getPublishedPages } from "@/lib/actions/pages";
+import { getPageBySlug } from "@/lib/actions/pages";
+
+// Render each page on-demand. Prerendering every slug at build time would
+// fight the Supabase pooler's per-session connection limit (15) alongside
+// the other route that prerenders (/links/[slug]).
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -17,13 +22,6 @@ export async function generateMetadata({
     title: page.title,
     description: page.metaDescription ?? undefined,
   };
-}
-
-export async function generateStaticParams() {
-  const pages = await getPublishedPages();
-  return pages
-    .filter((p) => p.pageType !== "external_link")
-    .map((p) => ({ slug: p.slug }));
 }
 
 export default async function DynamicPage({
