@@ -8,6 +8,12 @@ import { prisma } from "@/lib/prisma";
 import { getAllSettings } from "@/lib/actions/settings";
 import "./globals.css";
 
+// The root layout queries nav items and settings from the DB on every render.
+// Prerendering every descendant route at build time would open that many
+// concurrent connections to Supabase's session pooler (pool_size: 15) and
+// crash the build with EMAXCONNSESSION. Render on-demand instead.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getAllSettings();
   const name = settings.siteName || SITE_CONFIG.name;
