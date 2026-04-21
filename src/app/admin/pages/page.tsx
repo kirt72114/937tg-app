@@ -17,7 +17,6 @@ type PageItem = {
   isPublished: boolean;
   pageType: string;
   updatedAt: Date;
-  creator: { name: string } | null;
 };
 
 function formatDate(date: Date): string {

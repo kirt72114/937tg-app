@@ -16,7 +16,6 @@ export async function getPublishedPages() {
 export async function getAllPages() {
   return prisma.page.findMany({
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-    include: { creator: { select: { name: true } } },
   });
 }
 
