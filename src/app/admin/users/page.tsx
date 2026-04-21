@@ -134,7 +134,7 @@ export default function AdminUsersPage() {
           name: form.name,
           role: form.role,
         });
-        if ("error" in res && res.error) {
+        if ("error" in res && typeof res.error === "string") {
           setError(res.error);
           return;
         }
@@ -149,7 +149,7 @@ export default function AdminUsersPage() {
           password: form.password,
           role: form.role,
         });
-        if ("error" in res && res.error) {
+        if ("error" in res && typeof res.error === "string") {
           setError(res.error);
           return;
         }
