@@ -24,10 +24,15 @@ The group's mission extends to overseeing the completion of Phase II initial ski
 };
 
 export async function getAllSettings(): Promise<Record<string, string>> {
-  const rows = await prisma.siteSetting.findMany();
   const settings = { ...DEFAULT_SETTINGS };
-  for (const row of rows) {
-    settings[row.key] = row.value;
+  try {
+    const rows = await prisma.siteSetting.findMany();
+    for (const row of rows) {
+      settings[row.key] = row.value;
+    }
+  } catch {
+    // Fall back to defaults so a transient DB hiccup can't take down the
+    // root layout (which calls this on every request).
   }
   return settings;
 }
