@@ -39,7 +39,15 @@ function createPrismaClient() {
     });
   }
 
-  const pool = new pg.Pool({ connectionString });
+  const pool = new pg.Pool({
+    connectionString,
+    // Supabase's pooler requires TLS. `pg` won't enable TLS unless asked,
+    // and adding `?sslmode=require` to every DATABASE_URL is easy to forget,
+    // so force it here. Supabase serves its Postgres cert from a Supabase
+    // CA that Node doesn't ship in its root store, so skip cert validation —
+    // the traffic is still encrypted, we just aren't pinning the authority.
+    ssl: { rejectUnauthorized: false },
+  });
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 }
