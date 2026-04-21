@@ -1,9 +1,9 @@
 import type { RosterProfile } from "@/lib/actions/roster";
-import { MissingImage } from "@/components/shared/missing-image";
 import {
   LeadershipPortraitCarousel,
   type CarouselLeader,
 } from "./leadership-portrait-carousel";
+import { UnitBanner } from "./unit-banner";
 
 const TITLE_ORDER = [
   "Commander",
@@ -59,7 +59,12 @@ export function LeadershipUnitDetail({
   return (
     <article className="mx-auto max-w-5xl px-4 py-8">
       <section className="rounded-lg overflow-hidden border border-military-blue/20 bg-white shadow-sm">
-        <Banner content={content} />
+        <UnitBanner
+          unit={content.unit}
+          logoUrl={content.logoUrl}
+          mission={content.kind === "squadron" ? content.mission : null}
+          vision={content.kind === "squadron" ? content.vision : null}
+        />
 
         <div className="p-6 md:p-10 space-y-10">
           <LeadershipPortraitCarousel leaders={carouselLeaders} />
@@ -132,44 +137,3 @@ export function LeadershipUnitDetail({
   );
 }
 
-function Banner({ content }: { content: UnitDetailContent }) {
-  const missionText =
-    content.kind === "squadron" ? content.mission : null;
-  const visionText = content.kind === "squadron" ? content.vision : null;
-
-  return (
-    <header className="bg-military-blue/5 border-b border-military-blue/20 p-6 md:p-8">
-      <div className="flex flex-col sm:flex-row items-center gap-6">
-        <div className="shrink-0">
-          {content.logoUrl ? (
-            <img
-              src={content.logoUrl}
-              alt={`${content.unit} patch`}
-              className="h-24 w-24 md:h-32 md:w-32 object-contain"
-            />
-          ) : (
-            <MissingImage
-              label="Patch Missing"
-              className="h-24 w-24 md:h-32 md:w-32"
-            />
-          )}
-        </div>
-        <div className="flex-1 text-center sm:text-left">
-          <h1 className="text-2xl md:text-3xl font-bold text-military-navy">
-            {content.unit}
-          </h1>
-          {missionText && (
-            <p className="text-sm text-military-navy/80 mt-2">
-              <span className="font-semibold">MISSION:</span> {missionText}
-            </p>
-          )}
-          {visionText && (
-            <p className="text-sm text-military-navy/80 mt-1">
-              <span className="font-semibold">VISION:</span> {visionText}
-            </p>
-          )}
-        </div>
-      </div>
-    </header>
-  );
-}

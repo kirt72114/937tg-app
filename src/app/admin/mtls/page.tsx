@@ -214,16 +214,29 @@ export default function AdminMtlsPage() {
                 <Input
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  placeholder="e.g. Day MTL"
+                  placeholder="e.g. Flight Chief"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Used as the role heading on the squadron MTL page. Reuse
+                  titles like &ldquo;Flight Chief&rdquo;, &ldquo;Assistant Flight
+                  Chief&rdquo;, &ldquo;Section Chief&rdquo;, &ldquo;Line
+                  MTLs&rdquo;, or &ldquo;MTLs&rdquo; to group people together.
+                </p>
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Unit</label>
-                <Input
+                <label className="text-sm font-medium">Unit *</label>
+                <select
                   value={form.unit}
                   onChange={(e) => setForm({ ...form, unit: e.target.value })}
-                  placeholder="e.g. 381st TRS"
-                />
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <option value="">Select squadron...</option>
+                  <option value="381st Training Squadron">381st Training Squadron</option>
+                  <option value="382d Training Squadron">382d Training Squadron</option>
+                  <option value="383d Training Squadron">383d Training Squadron</option>
+                  <option value="937th Training Support Squadron">937th Training Support Squadron</option>
+                  <option value="937th Training Group">937th Training Group</option>
+                </select>
               </div>
               <div className="space-y-1.5 sm:col-span-2">
                 <ImagePicker

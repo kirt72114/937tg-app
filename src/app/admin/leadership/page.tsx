@@ -281,6 +281,7 @@ export default function AdminLeadershipPage() {
                   <option value="381st Training Squadron">381st Training Squadron</option>
                   <option value="382d Training Squadron">382d Training Squadron</option>
                   <option value="383d Training Squadron">383d Training Squadron</option>
+                  <option value="937th Training Support Squadron">937th Training Support Squadron</option>
                 </select>
               </div>
               <div className="space-y-1.5 sm:col-span-2">

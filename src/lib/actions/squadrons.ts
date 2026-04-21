@@ -136,6 +136,15 @@ const DEFAULT_SQUADRONS = [
     ],
     sortOrder: 3,
   },
+  {
+    unit: "937th Training Support Squadron",
+    motto: "Leading the Best",
+    mission:
+      "Outfitting Warrior Medics to enable initial & adaptive expeditionary training",
+    vision: "Our Support readies medics for Great Power Competition",
+    afscs: [],
+    sortOrder: 4,
+  },
 ];
 
 export async function seedDefaultSquadrons() {

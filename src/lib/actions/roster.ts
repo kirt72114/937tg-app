@@ -55,3 +55,14 @@ export async function getRosterProfiles(
     },
   });
 }
+
+export async function getUnitsWithProfileType(
+  profileType: "leadership" | "mtl"
+): Promise<Set<string>> {
+  const rows = await prisma.leadershipProfile.findMany({
+    where: { profileType, isActive: true },
+    select: { unit: true },
+    distinct: ["unit"],
+  });
+  return new Set(rows.map((r) => r.unit));
+}

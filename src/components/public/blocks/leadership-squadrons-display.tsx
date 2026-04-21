@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 
 import { getAllSquadrons } from "@/lib/actions/squadrons";
 import { getAllSettings } from "@/lib/actions/settings";
+import { getUnitsWithProfileType } from "@/lib/actions/roster";
 import { MissingImage } from "@/components/shared/missing-image";
 import { unitToSlug, GROUP_SLUG } from "@/lib/unit-slug";
 
@@ -49,9 +50,10 @@ function Tile({ tile }: { tile: HubTile }) {
 }
 
 export async function LeadershipSquadronsDisplay() {
-  const [squadrons, settings] = await Promise.all([
+  const [squadrons, settings, leadershipUnits] = await Promise.all([
     getAllSquadrons(),
     getAllSettings(),
+    getUnitsWithProfileType("leadership"),
   ]);
 
   const groupUnit = settings.siteName || "937th Training Group";
@@ -63,12 +65,14 @@ export async function LeadershipSquadronsDisplay() {
       subtitle: settings.location || "JBSA-Fort Sam Houston, TX",
       logoUrl: settings.groupLogoUrl || null,
     },
-    ...squadrons.map((s) => ({
-      unit: s.unit,
-      slug: unitToSlug(s.unit),
-      subtitle: s.motto,
-      logoUrl: s.logoUrl,
-    })),
+    ...squadrons
+      .filter((s) => leadershipUnits.has(s.unit))
+      .map((s) => ({
+        unit: s.unit,
+        slug: unitToSlug(s.unit),
+        subtitle: s.motto,
+        logoUrl: s.logoUrl,
+      })),
   ];
 
   return (

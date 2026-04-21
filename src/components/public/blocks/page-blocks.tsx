@@ -3,7 +3,6 @@ import type {
   PageBlock,
   RosterBlock,
 } from "@/lib/content-blocks";
-import { getRosterProfiles } from "@/lib/actions/roster";
 import { LeadershipSquadronsDisplay } from "./leadership-squadrons-display";
 import { MtlCardsDisplay } from "./mtl-cards-display";
 import { InfoCardsDisplay } from "./info-cards-display";
@@ -41,10 +40,8 @@ async function RosterBlockView({ block }: { block: RosterBlock }) {
     return <LeadershipSquadronsDisplay />;
   }
 
-  const profiles = await getRosterProfiles(block.filter);
-
   if (block.display === "mtl-cards") {
-    return <MtlCardsDisplay profiles={profiles} />;
+    return <MtlCardsDisplay />;
   }
 
   return (

@@ -20,12 +20,13 @@ Settings → Group Patch** for the 937 TG group-level patch).
 
 Recommended size: square PNG with transparent background, at least 256×256.
 
-| Unit                      | Suggested filename                  | Where to save it                                    |
-| ------------------------- | ----------------------------------- | --------------------------------------------------- |
-| 937th Training Group      | `937tg.png`                         | Admin → Settings → Group Patch                      |
-| 381st Training Squadron   | `381st.png`                         | Admin → Squadrons → 381st → Squadron Patch          |
-| 382d Training Squadron    | `382d.png`                          | Admin → Squadrons → 382d → Squadron Patch           |
-| 383d Training Squadron    | `383d.png`                          | Admin → Squadrons → 383d → Squadron Patch           |
+| Unit                            | Suggested filename                  | Where to save it                                          |
+| ------------------------------- | ----------------------------------- | --------------------------------------------------------- |
+| 937th Training Group            | `937tg.png`                         | Admin → Settings → Group Patch                            |
+| 381st Training Squadron         | `381st.png`                         | Admin → Squadrons → 381st → Squadron Patch                |
+| 382d Training Squadron          | `382d.png`                          | Admin → Squadrons → 382d → Squadron Patch                 |
+| 383d Training Squadron          | `383d.png`                          | Admin → Squadrons → 383d → Squadron Patch                 |
+| 937th Training Support Squadron | `937tss.png`                        | Admin → Squadrons → 937th Training Support Squadron → Squadron Patch |
 
 If you upload through the admin UI, the file ends up in the Supabase `images`
 bucket under the `squadrons/` prefix and the URL is saved to the DB
@@ -48,6 +49,19 @@ The following leaders currently have no `photo_url`. Upload via
 | 383d Training Squadron    | Fabrizio Lamarca  | CMSgt — Senior Enlisted Leader    |
 
 Recommended: portrait orientation, object-top crop-friendly, around 800px tall.
+
+---
+
+## MTL Portraits
+
+MTL profiles are managed at **Admin → MTLs**. Each profile has its own photo
+slot — upload via the same form. MTLs without a photo render as an
+"Image Missing" placeholder in the carousel and thumbnail strip.
+
+Whenever you add a new MTL, assign them to a squadron via the **Unit**
+dropdown on that form. The public `/mtls` hub and
+`/mtls/<squadron-slug>` pages are driven entirely by this data — a squadron
+with zero active MTLs won't appear as a tile.
 
 ---
 
