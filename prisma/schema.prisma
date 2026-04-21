@@ -298,6 +298,22 @@ model RopeProgram {
   @@map("rope_programs")
 }
 
+// ─── AFSCs (Training Programs) ────────────────────────
+
+model Afsc {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String   @unique
+  title       String
+  description String?
+  duration    String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("afscs")
+}
+
 // ─── Squadrons ────────────────────────────────────────
 
 model Squadron {

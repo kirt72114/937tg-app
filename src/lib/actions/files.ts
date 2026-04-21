@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
@@ -24,7 +25,7 @@ export async function uploadFile(formData: FormData) {
     return { error: "File too large (max 10 MB)" };
   }
 
-  const supabase = await createClient();
+  const admin = createAdminClient();
 
   const ext = file.name.split(".").pop()?.toLowerCase() || "bin";
   const safeName = file.name
@@ -37,7 +38,7 @@ export async function uploadFile(formData: FormData) {
 
   const arrayBuffer = await file.arrayBuffer();
 
-  const { error: uploadError } = await supabase.storage
+  const { error: uploadError } = await admin.storage
     .from(STORAGE_BUCKET)
     .upload(path, arrayBuffer, {
       contentType: file.type,
@@ -52,7 +53,7 @@ export async function uploadFile(formData: FormData) {
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+  } = admin.storage.from(STORAGE_BUCKET).getPublicUrl(path);
 
   // Record in files table for tracking.
   try {
@@ -105,10 +106,50 @@ export async function deleteUploadedFile(id: string) {
   const file = await prisma.file.findUnique({ where: { id } });
   if (!file) return { error: "File not found" };
 
-  const supabase = await createClient();
-  await supabase.storage.from(STORAGE_BUCKET).remove([file.storagePath]);
+  const admin = createAdminClient();
+  await admin.storage.from(STORAGE_BUCKET).remove([file.storagePath]);
   await prisma.file.delete({ where: { id } });
 
   revalidatePath("/admin/files");
   return { success: true };
+}
+
+/**
+ * Upload an image for inline use in rich-text content. Not recorded in
+ * the files table since these are embedded, not standalone downloads.
+ */
+export async function uploadContentImage(formData: FormData) {
+  const file = formData.get("file") as File | null;
+  if (!file) return { error: "No file provided" };
+  if (!file.type.startsWith("image/")) {
+    return { error: "Only image files allowed" };
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    return { error: "Image too large (max 5 MB)" };
+  }
+
+  const admin = createAdminClient();
+  const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+  const safeName = file.name
+    .replace(/\.[^/.]+$/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 60) || "image";
+  const path = `content-images/${Date.now()}-${safeName}.${ext}`;
+
+  const arrayBuffer = await file.arrayBuffer();
+  const { error } = await admin.storage
+    .from(STORAGE_BUCKET)
+    .upload(path, arrayBuffer, {
+      contentType: file.type,
+      upsert: false,
+    });
+
+  if (error) return { error: error.message };
+
+  const {
+    data: { publicUrl },
+  } = admin.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+  return { url: publicUrl };
 }
