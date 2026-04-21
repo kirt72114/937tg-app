@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function AdminError({
@@ -9,6 +10,10 @@ export default function AdminError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error("[admin] error boundary caught:", error);
+  }, [error]);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10 mb-6">
@@ -18,6 +23,12 @@ export default function AdminError({
       <p className="text-muted-foreground mb-6 max-w-md">
         Something went wrong in the admin panel. Please try again.
       </p>
+      {error.message && (
+        <pre className="mb-6 max-w-2xl overflow-auto rounded-md border bg-muted/50 p-3 text-left text-xs">
+          {error.message}
+          {error.digest ? `\n\nDigest: ${error.digest}` : ""}
+        </pre>
+      )}
       <Button onClick={reset}>Try Again</Button>
     </div>
   );

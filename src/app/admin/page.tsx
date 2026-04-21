@@ -13,18 +13,44 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+type RecentWorkOrder = {
+  id: string;
+  referenceNumber: string;
+  submitterName: string;
+  location: string;
+  status: string;
+};
+
+async function safeCount(fn: () => Promise<number>): Promise<number> {
+  try {
+    return await fn();
+  } catch (err) {
+    console.error("[admin/dashboard] count query failed:", err);
+    return 0;
+  }
+}
+
+async function safeRecentWorkOrders(): Promise<RecentWorkOrder[]> {
+  try {
+    return await prisma.workOrder.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+  } catch (err) {
+    console.error("[admin/dashboard] recent work orders query failed:", err);
+    return [];
+  }
+}
+
 export default async function AdminDashboard() {
   const [announcementCount, workOrderCount, leadershipCount, contactCount, locationCount, recentWorkOrders] =
     await Promise.all([
-      prisma.announcement.count(),
-      prisma.workOrder.count(),
-      prisma.leadershipProfile.count({ where: { isActive: true } }),
-      prisma.contact.count({ where: { isActive: true } }),
-      prisma.location.count(),
-      prisma.workOrder.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      }),
+      safeCount(() => prisma.announcement.count()),
+      safeCount(() => prisma.workOrder.count()),
+      safeCount(() => prisma.leadershipProfile.count({ where: { isActive: true } })),
+      safeCount(() => prisma.contact.count({ where: { isActive: true } })),
+      safeCount(() => prisma.location.count()),
+      safeRecentWorkOrders(),
     ]);
 
   const stats = [
