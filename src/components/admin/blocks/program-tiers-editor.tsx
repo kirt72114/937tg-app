@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { ColorPicker } from "./icon-color-pickers";
+import { SortableList } from "@/components/admin/sortable-list";
 import type {
   ProgramTiersBlock,
   ProgramTierItem,
@@ -23,14 +24,6 @@ export function ProgramTiersEditor({
   function updateTier(index: number, patch: Partial<ProgramTierItem>) {
     const next = block.tiers.slice();
     next[index] = { ...next[index], ...patch };
-    onChange({ ...block, tiers: next });
-  }
-
-  function moveTier(index: number, direction: "up" | "down") {
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= block.tiers.length) return;
-    const next = block.tiers.slice();
-    [next[index], next[target]] = [next[target], next[index]];
     onChange({ ...block, tiers: next });
   }
 
@@ -66,6 +59,18 @@ export function ProgramTiersEditor({
     const sections = tier.sections.slice();
     sections[sectionIndex] = { ...sections[sectionIndex], ...patch };
     updateTier(tierIndex, { sections });
+  }
+
+  function reorderSections(tierIndex: number, sections: ProgramTierSection[]) {
+    updateTier(tierIndex, { sections });
+  }
+
+  function reorderSectionItems(
+    tierIndex: number,
+    sectionIndex: number,
+    items: string[]
+  ) {
+    updateSection(tierIndex, sectionIndex, { items });
   }
 
   function updateSectionItem(
@@ -112,44 +117,29 @@ export function ProgramTiersEditor({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3">
-        {block.tiers.map((tier, ti) => (
-          <div key={ti} className="rounded-md border p-4 space-y-3 bg-muted/30">
+      <SortableList
+        items={block.tiers}
+        getId={(_, i) => `tier-${i}`}
+        onReorder={(next) => onChange({ ...block, tiers: next })}
+        className="space-y-3"
+        renderItem={({ item: tier, index: ti, handle: tierHandle }) => (
+          <div className="rounded-md border p-4 space-y-3 bg-muted/30">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                Tier {ti + 1}
-              </span>
-              <div className="flex gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => moveTier(ti, "up")}
-                  disabled={ti === 0}
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => moveTier(ti, "down")}
-                  disabled={ti === block.tiers.length - 1}
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-destructive hover:text-destructive"
-                  onClick={() => removeTier(ti)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center gap-2">
+                {tierHandle}
+                <span className="text-xs font-medium text-muted-foreground">
+                  Tier {ti + 1}
+                </span>
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive hover:text-destructive"
+                onClick={() => removeTier(ti)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -190,38 +180,25 @@ export function ProgramTiersEditor({
 
             <div className="space-y-3">
               <label className="text-sm font-medium">Sections</label>
-              {tier.sections.map((section, si) => (
-                <div
-                  key={si}
-                  className="rounded-md border bg-background p-3 space-y-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <Input
-                      value={section.title}
-                      onChange={(e) =>
-                        updateSection(ti, si, { title: e.target.value })
-                      }
-                      placeholder="Section title"
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-destructive hover:text-destructive"
-                      onClick={() => removeSection(ti, si)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {section.items.map((item, ii) => (
-                    <div key={ii} className="flex items-start gap-2">
+              <SortableList
+                items={tier.sections}
+                getId={(_, si) => `tier-${ti}-section-${si}`}
+                onReorder={(sections) => reorderSections(ti, sections)}
+                className="space-y-2"
+                renderItem={({
+                  item: section,
+                  index: si,
+                  handle: sectionHandle,
+                }) => (
+                  <div className="rounded-md border bg-background p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      {sectionHandle}
                       <Input
-                        value={item}
+                        value={section.title}
                         onChange={(e) =>
-                          updateSectionItem(ti, si, ii, e.target.value)
+                          updateSection(ti, si, { title: e.target.value })
                         }
-                        placeholder={`Item ${ii + 1}`}
+                        placeholder="Section title"
                         className="flex-1"
                       />
                       <Button
@@ -229,23 +206,53 @@ export function ProgramTiersEditor({
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-destructive hover:text-destructive"
-                        onClick={() => removeSectionItem(ti, si, ii)}
+                        onClick={() => removeSection(ti, si)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => addSectionItem(ti, si)}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Item
-                  </Button>
-                </div>
-              ))}
+                    <SortableList
+                      items={section.items}
+                      getId={(_, ii) => `tier-${ti}-section-${si}-item-${ii}`}
+                      onReorder={(items) =>
+                        reorderSectionItems(ti, si, items)
+                      }
+                      className="space-y-2"
+                      renderItem={({ item, index: ii, handle }) => (
+                        <div className="flex items-start gap-2">
+                          <div className="pt-2">{handle}</div>
+                          <Input
+                            value={item}
+                            onChange={(e) =>
+                              updateSectionItem(ti, si, ii, e.target.value)
+                            }
+                            placeholder={`Item ${ii + 1}`}
+                            className="flex-1"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            onClick={() => removeSectionItem(ti, si, ii)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addSectionItem(ti, si)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Item
+                    </Button>
+                  </div>
+                )}
+              />
               <Button
                 type="button"
                 variant="outline"
@@ -257,8 +264,8 @@ export function ProgramTiersEditor({
               </Button>
             </div>
           </div>
-        ))}
-      </div>
+        )}
+      />
 
       <Button type="button" variant="outline" size="sm" onClick={addTier}>
         <Plus className="h-4 w-4 mr-2" />

@@ -74,8 +74,11 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
-  // Don't wrap login page with admin layout
-  if (pathname === "/admin/login") {
+  // Don't wrap login page or page-preview iframe with admin layout
+  if (
+    pathname === "/admin/login" ||
+    /^\/admin\/pages\/[^/]+\/preview$/.test(pathname ?? "")
+  ) {
     return <>{children}</>;
   }
 

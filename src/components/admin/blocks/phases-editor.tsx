@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
+import { SortableList } from "@/components/admin/sortable-list";
 import type { PhasesBlock, Phase } from "@/lib/content-blocks";
 
 const selectClasses =
@@ -46,25 +47,8 @@ export function PhasesEditor({
     });
   }
 
-  function moveItem(
-    phaseIndex: number,
-    itemIndex: number,
-    direction: "up" | "down"
-  ) {
-    const phase = block.phases[phaseIndex];
-    const target = direction === "up" ? itemIndex - 1 : itemIndex + 1;
-    if (target < 0 || target >= phase.items.length) return;
-    const items = phase.items.slice();
-    [items[itemIndex], items[target]] = [items[target], items[itemIndex]];
+  function reorderItems(phaseIndex: number, items: string[]) {
     updatePhase(phaseIndex, { items });
-  }
-
-  function movePhase(index: number, direction: "up" | "down") {
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= block.phases.length) return;
-    const next = block.phases.slice();
-    [next[index], next[target]] = [next[target], next[index]];
-    onChange({ ...block, phases: next });
   }
 
   function removePhase(index: number) {
@@ -111,47 +95,29 @@ export function PhasesEditor({
         </select>
       </div>
 
-      <div className="space-y-3">
-        {block.phases.map((phase, pi) => (
-          <div
-            key={pi}
-            className="rounded-md border p-4 space-y-3 bg-muted/30"
-          >
+      <SortableList
+        items={block.phases}
+        getId={(_, i) => `phase-${i}`}
+        onReorder={(next) => onChange({ ...block, phases: next })}
+        className="space-y-3"
+        renderItem={({ item: phase, index: pi, handle: phaseHandle }) => (
+          <div className="rounded-md border p-4 space-y-3 bg-muted/30">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                Phase {pi + 1}
-              </span>
-              <div className="flex gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => movePhase(pi, "up")}
-                  disabled={pi === 0}
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => movePhase(pi, "down")}
-                  disabled={pi === block.phases.length - 1}
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-destructive hover:text-destructive"
-                  onClick={() => removePhase(pi)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center gap-2">
+                {phaseHandle}
+                <span className="text-xs font-medium text-muted-foreground">
+                  Phase {pi + 1}
+                </span>
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive hover:text-destructive"
+                onClick={() => removePhase(pi)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -189,36 +155,21 @@ export function PhasesEditor({
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Items</label>
-              {phase.items.map((item, ii) => (
-                <div key={ii} className="flex items-start gap-2">
-                  <div className="flex-1">
-                    <Input
-                      value={item}
-                      onChange={(e) => updateItem(pi, ii, e.target.value)}
-                      placeholder={`Item ${ii + 1}`}
-                    />
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => moveItem(pi, ii, "up")}
-                      disabled={ii === 0}
-                    >
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => moveItem(pi, ii, "down")}
-                      disabled={ii === phase.items.length - 1}
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
+              <SortableList
+                items={phase.items}
+                getId={(_, ii) => `phase-${pi}-item-${ii}`}
+                onReorder={(items) => reorderItems(pi, items)}
+                className="space-y-2"
+                renderItem={({ item, index: ii, handle }) => (
+                  <div className="flex items-start gap-2">
+                    <div className="pt-2">{handle}</div>
+                    <div className="flex-1">
+                      <Input
+                        value={item}
+                        onChange={(e) => updateItem(pi, ii, e.target.value)}
+                        placeholder={`Item ${ii + 1}`}
+                      />
+                    </div>
                     <Button
                       type="button"
                       variant="ghost"
@@ -229,8 +180,8 @@ export function PhasesEditor({
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-              ))}
+                )}
+              />
               <Button
                 type="button"
                 variant="outline"
@@ -242,8 +193,8 @@ export function PhasesEditor({
               </Button>
             </div>
           </div>
-        ))}
-      </div>
+        )}
+      />
 
       <Button type="button" variant="outline" size="sm" onClick={addPhase}>
         <Plus className="h-4 w-4 mr-2" />

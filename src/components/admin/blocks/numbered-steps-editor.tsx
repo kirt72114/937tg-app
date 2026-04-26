@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { IconPicker, ColorPicker } from "./icon-color-pickers";
+import { SortableList } from "@/components/admin/sortable-list";
 import type {
   NumberedStepsBlock,
   NumberedStep,
@@ -36,14 +37,6 @@ export function NumberedStepsEditor({
   function updateStep(index: number, patch: Partial<NumberedStep>) {
     const next = block.steps.slice();
     next[index] = { ...next[index], ...patch };
-    onChange({ ...block, steps: next });
-  }
-
-  function moveStep(index: number, direction: "up" | "down") {
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= block.steps.length) return;
-    const next = block.steps.slice();
-    [next[index], next[target]] = [next[target], next[index]];
     onChange({ ...block, steps: next });
   }
 
@@ -123,65 +116,49 @@ export function NumberedStepsEditor({
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Steps</label>
-        {block.steps.map((step, i) => (
-          <div
-            key={i}
-            className="flex items-start gap-2 rounded-md border bg-muted/30 p-3"
-          >
-            <div className="flex-1 space-y-2">
-              <Input
-                value={step.text}
-                onChange={(e) => updateStep(i, { text: e.target.value })}
-                placeholder={`Step ${i + 1}`}
-              />
-              {showBadges && (
-                <div className="space-y-1">
-                  <label className="text-xs font-medium">
-                    Right-side badge (e.g. time)
-                  </label>
-                  <Input
-                    value={step.badge ?? ""}
-                    onChange={(e) =>
-                      updateStep(i, { badge: e.target.value || undefined })
-                    }
-                    placeholder="e.g. :05 / :35"
-                  />
-                </div>
-              )}
-            </div>
-            <div className="flex flex-col gap-1">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => moveStep(i, "up")}
-                disabled={i === 0}
-              >
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => moveStep(i, "down")}
-                disabled={i === block.steps.length - 1}
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
+        <SortableList
+          items={block.steps}
+          getId={(_, i) => String(i)}
+          onReorder={(next) => onChange({ ...block, steps: next })}
+          className="space-y-2"
+          renderItem={({ item, index, handle }) => (
+            <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-3">
+              <div className="pt-2">{handle}</div>
+              <div className="flex-1 space-y-2">
+                <Input
+                  value={item.text}
+                  onChange={(e) => updateStep(index, { text: e.target.value })}
+                  placeholder={`Step ${index + 1}`}
+                />
+                {showBadges && (
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">
+                      Right-side badge (e.g. time)
+                    </label>
+                    <Input
+                      value={item.badge ?? ""}
+                      onChange={(e) =>
+                        updateStep(index, {
+                          badge: e.target.value || undefined,
+                        })
+                      }
+                      placeholder="e.g. :05 / :35"
+                    />
+                  </div>
+                )}
+              </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-destructive hover:text-destructive"
-                onClick={() => removeStep(i)}
+                onClick={() => removeStep(index)}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-          </div>
-        ))}
+          )}
+        />
         <Button type="button" variant="outline" size="sm" onClick={addStep}>
           <Plus className="h-4 w-4 mr-2" />
           Add Step

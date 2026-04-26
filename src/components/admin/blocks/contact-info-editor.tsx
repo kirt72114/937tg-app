@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { IconPicker } from "./icon-color-pickers";
+import { SortableList } from "@/components/admin/sortable-list";
 import type {
   ContactInfoBlock,
   ContactItem,
@@ -30,14 +31,6 @@ export function ContactInfoEditor({
   function updateItem(index: number, patch: Partial<ContactItem>) {
     const next = block.items.slice();
     next[index] = { ...next[index], ...patch };
-    onChange({ ...block, items: next });
-  }
-
-  function moveItem(index: number, direction: "up" | "down") {
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= block.items.length) return;
-    const next = block.items.slice();
-    [next[index], next[target]] = [next[target], next[index]];
     onChange({ ...block, items: next });
   }
 
@@ -92,61 +85,43 @@ export function ContactInfoEditor({
         </div>
       </div>
 
-      <div className="space-y-3">
-        {block.items.map((item, i) => {
+      <SortableList
+        items={block.items}
+        getId={(_, i) => String(i)}
+        onReorder={(next) => onChange({ ...block, items: next })}
+        className="space-y-3"
+        renderItem={({ item, index, handle }) => {
           const kindDef = KINDS.find((k) => k.value === item.kind);
           return (
-            <div
-              key={i}
-              className="rounded-md border p-4 space-y-3 bg-muted/30"
-            >
+            <div className="rounded-md border p-4 space-y-3 bg-muted/30">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">
-                  Contact {i + 1}
-                </span>
-                <div className="flex gap-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => moveItem(i, "up")}
-                    disabled={i === 0}
-                  >
-                    <ChevronUp className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => moveItem(i, "down")}
-                    disabled={i === block.items.length - 1}
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-destructive hover:text-destructive"
-                    onClick={() => removeItem(i)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div className="flex items-center gap-2">
+                  {handle}
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Contact {index + 1}
+                  </span>
                 </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-destructive hover:text-destructive"
+                  onClick={() => removeItem(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <IconPicker
                   value={item.icon}
-                  onChange={(icon) => updateItem(i, { icon })}
+                  onChange={(icon) => updateItem(index, { icon })}
                 />
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium">Type</label>
                   <select
                     value={item.kind}
                     onChange={(e) =>
-                      updateItem(i, { kind: e.target.value as ContactKind })
+                      updateItem(index, { kind: e.target.value as ContactKind })
                     }
                     className={selectClasses}
                   >
@@ -168,7 +143,9 @@ export function ContactInfoEditor({
                   <label className="text-sm font-medium">Label</label>
                   <Input
                     value={item.label}
-                    onChange={(e) => updateItem(i, { label: e.target.value })}
+                    onChange={(e) =>
+                      updateItem(index, { label: e.target.value })
+                    }
                     placeholder="e.g. Phone"
                   />
                 </div>
@@ -176,7 +153,9 @@ export function ContactInfoEditor({
                   <label className="text-sm font-medium">Value</label>
                   <Input
                     value={item.value}
-                    onChange={(e) => updateItem(i, { value: e.target.value })}
+                    onChange={(e) =>
+                      updateItem(index, { value: e.target.value })
+                    }
                     placeholder={
                       item.kind === "phone"
                         ? "e.g. 210-808-3300"
@@ -190,11 +169,15 @@ export function ContactInfoEditor({
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Sub-label (optional)</label>
+                <label className="text-sm font-medium">
+                  Sub-label (optional)
+                </label>
                 <Input
                   value={item.sublabel ?? ""}
                   onChange={(e) =>
-                    updateItem(i, { sublabel: e.target.value || undefined })
+                    updateItem(index, {
+                      sublabel: e.target.value || undefined,
+                    })
                   }
                   placeholder="Smaller hint shown under the value"
                 />
@@ -204,7 +187,9 @@ export function ContactInfoEditor({
                   type="checkbox"
                   checked={item.emphasize ?? false}
                   onChange={(e) =>
-                    updateItem(i, { emphasize: e.target.checked || undefined })
+                    updateItem(index, {
+                      emphasize: e.target.checked || undefined,
+                    })
                   }
                   className="h-4 w-4"
                 />
@@ -212,8 +197,8 @@ export function ContactInfoEditor({
               </label>
             </div>
           );
-        })}
-      </div>
+        }}
+      />
 
       <Button type="button" variant="outline" size="sm" onClick={addItem}>
         <Plus className="h-4 w-4 mr-2" />

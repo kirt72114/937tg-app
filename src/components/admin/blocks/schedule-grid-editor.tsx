@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
+import { SortableList } from "@/components/admin/sortable-list";
 import type {
   ScheduleGridBlock,
   ScheduleColumn,
@@ -57,12 +58,8 @@ export function ScheduleGridEditor({
     });
   }
 
-  function moveColumn(index: number, direction: "up" | "down") {
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= block.columns.length) return;
-    const next = block.columns.slice();
-    [next[index], next[target]] = [next[target], next[index]];
-    onChange({ ...block, columns: next });
+  function reorderRows(columnIndex: number, rows: ScheduleRow[]) {
+    updateColumn(columnIndex, { rows });
   }
 
   function removeColumn(index: number) {
@@ -100,47 +97,29 @@ export function ScheduleGridEditor({
         />
       </div>
 
-      <div className="space-y-3">
-        {block.columns.map((col, ci) => (
-          <div
-            key={ci}
-            className="rounded-md border p-4 space-y-3 bg-muted/30"
-          >
+      <SortableList
+        items={block.columns}
+        getId={(_, ci) => `col-${ci}`}
+        onReorder={(next) => onChange({ ...block, columns: next })}
+        className="space-y-3"
+        renderItem={({ item: col, index: ci, handle: colHandle }) => (
+          <div className="rounded-md border p-4 space-y-3 bg-muted/30">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                Schedule {ci + 1}
-              </span>
-              <div className="flex gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => moveColumn(ci, "up")}
-                  disabled={ci === 0}
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => moveColumn(ci, "down")}
-                  disabled={ci === block.columns.length - 1}
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-destructive hover:text-destructive"
-                  onClick={() => removeColumn(ci)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center gap-2">
+                {colHandle}
+                <span className="text-xs font-medium text-muted-foreground">
+                  Schedule {ci + 1}
+                </span>
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive hover:text-destructive"
+                onClick={() => removeColumn(ci)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -170,7 +149,8 @@ export function ScheduleGridEditor({
                   value={col.badgeVariant}
                   onChange={(e) =>
                     updateColumn(ci, {
-                      badgeVariant: e.target.value as ScheduleColumn["badgeVariant"],
+                      badgeVariant: e.target
+                        .value as ScheduleColumn["badgeVariant"],
                     })
                   }
                   className={selectClasses}
@@ -186,45 +166,51 @@ export function ScheduleGridEditor({
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Entries</label>
-              {col.rows.map((row, ri) => (
-                <div
-                  key={ri}
-                  className="grid grid-cols-1 sm:grid-cols-[1fr,1fr,1fr,auto] gap-2 items-start"
-                >
-                  <Input
-                    value={row.label}
-                    onChange={(e) =>
-                      updateRow(ci, ri, { label: e.target.value })
-                    }
-                    placeholder="Label (e.g. Breakfast)"
-                  />
-                  <Input
-                    value={row.value}
-                    onChange={(e) =>
-                      updateRow(ci, ri, { value: e.target.value })
-                    }
-                    placeholder="Value (e.g. 0600 - 0800)"
-                  />
-                  <Input
-                    value={row.notes ?? ""}
-                    onChange={(e) =>
-                      updateRow(ci, ri, {
-                        notes: e.target.value || undefined,
-                      })
-                    }
-                    placeholder="Notes (optional)"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-10 w-10 text-destructive hover:text-destructive"
-                    onClick={() => removeRow(ci, ri)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+              <SortableList
+                items={col.rows}
+                getId={(_, ri) => `col-${ci}-row-${ri}`}
+                onReorder={(rows) => reorderRows(ci, rows)}
+                className="space-y-2"
+                renderItem={({ item: row, index: ri, handle: rowHandle }) => (
+                  <div className="flex items-start gap-2">
+                    <div className="pt-2">{rowHandle}</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
+                      <Input
+                        value={row.label}
+                        onChange={(e) =>
+                          updateRow(ci, ri, { label: e.target.value })
+                        }
+                        placeholder="Label (e.g. Breakfast)"
+                      />
+                      <Input
+                        value={row.value}
+                        onChange={(e) =>
+                          updateRow(ci, ri, { value: e.target.value })
+                        }
+                        placeholder="Value (e.g. 0600 - 0800)"
+                      />
+                      <Input
+                        value={row.notes ?? ""}
+                        onChange={(e) =>
+                          updateRow(ci, ri, {
+                            notes: e.target.value || undefined,
+                          })
+                        }
+                        placeholder="Notes (optional)"
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10 text-destructive hover:text-destructive"
+                      onClick={() => removeRow(ci, ri)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              />
               <Button
                 type="button"
                 variant="outline"
@@ -236,8 +222,8 @@ export function ScheduleGridEditor({
               </Button>
             </div>
           </div>
-        ))}
-      </div>
+        )}
+      />
 
       <Button type="button" variant="outline" size="sm" onClick={addColumn}>
         <Plus className="h-4 w-4 mr-2" />

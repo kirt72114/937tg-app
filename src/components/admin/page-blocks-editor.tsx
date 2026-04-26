@@ -1,32 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  ChevronUp,
   ChevronDown,
+  ChevronRight,
+  Copy,
+  Plus,
   Trash2,
-  Users,
-  Text,
-  LayoutGrid,
-  BarChart3,
-  ListChecks,
-  Phone,
-  Contact,
-  Star,
-  ListOrdered,
-  Route as RouteIcon,
-  CalendarClock,
-  Code2,
-  Trophy,
-  MapPinned,
-  Folder,
-  LinkIcon,
 } from "lucide-react";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical } from "lucide-react";
+
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { BlockPicker } from "@/components/admin/block-picker";
 import { InfoCardsEditor } from "@/components/admin/blocks/info-cards-editor";
 import { StatsEditor } from "@/components/admin/blocks/stats-editor";
 import { ChecklistEditor } from "@/components/admin/blocks/checklist-editor";
@@ -42,22 +48,8 @@ import { LocationsDirectoryEditor } from "@/components/admin/blocks/locations-di
 import { FilesListEditor } from "@/components/admin/blocks/files-list-editor";
 import { LinkCollectionsListEditor } from "@/components/admin/blocks/link-collections-list-editor";
 import {
-  createChecklistBlock,
-  createContactInfoBlock,
-  createContactsDirectoryBlock,
-  createDefinitionCardsBlock,
-  createFilesListBlock,
-  createHighlightCardBlock,
-  createHtmlBlock,
-  createInfoCardsBlock,
-  createLinkCollectionsListBlock,
-  createLocationsDirectoryBlock,
-  createNumberedStepsBlock,
-  createPhasesBlock,
-  createProgramTiersBlock,
-  createRosterBlock,
-  createScheduleGridBlock,
-  createStatsBlock,
+  BLOCK_TYPE_LABELS,
+  summarizeBlock,
   type ChecklistBlock,
   type ContactInfoBlock,
   type ContactsDirectoryBlock,
@@ -88,24 +80,22 @@ const ROSTER_DISPLAYS: { value: RosterDisplay; label: string }[] = [
   { value: "simple-grid", label: "Simple Profile Grid" },
 ];
 
-const BLOCK_LABELS: Record<PageBlock["type"], string> = {
-  html: "Text",
-  roster: "Roster",
-  "info-cards": "Info Cards",
-  stats: "Stats",
-  checklist: "Checklist",
-  "contacts-directory": "Phone Directory",
-  "contact-info": "Contact Info",
-  "highlight-card": "Highlight Card",
-  phases: "Phases",
-  "numbered-steps": "Numbered Steps",
-  "schedule-grid": "Schedule Grid",
-  "definition-cards": "Definition Cards",
-  "program-tiers": "Program Tiers",
-  "locations-directory": "Locations",
-  "files-list": "Files List",
-  "link-collections-list": "Link Collections",
-};
+type WithId = PageBlock & { __id: string };
+
+function nextId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).slice(2);
+}
+
+function withIds(blocks: PageBlock[]): WithId[] {
+  return blocks.map((b) => ({ ...b, __id: nextId() })) as WithId[];
+}
+
+function stripIds(blocks: WithId[]): PageBlock[] {
+  return blocks.map(({ __id: _ignored, ...rest }) => rest as PageBlock);
+}
 
 interface PageBlocksEditorProps {
   blocks: PageBlock[];
@@ -113,358 +103,400 @@ interface PageBlocksEditorProps {
 }
 
 export function PageBlocksEditor({ blocks, onChange }: PageBlocksEditorProps) {
-  function update(index: number, next: PageBlock) {
-    const copy = blocks.slice();
-    copy[index] = next;
-    onChange(copy);
+  // Maintain stable __id per row so DnD has identity even when content changes.
+  const [rows, setRows] = useState<WithId[]>(() => withIds(blocks));
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [scrollToId, setScrollToId] = useState<string | null>(null);
+
+  // Re-sync from outside if the blocks reference truly changed (e.g., page reload).
+  // We compare by stripped JSON to avoid resetting on every parent re-render.
+  const lastJsonRef = useRef<string>(JSON.stringify(blocks));
+  useEffect(() => {
+    const next = JSON.stringify(blocks);
+    if (next !== lastJsonRef.current) {
+      lastJsonRef.current = next;
+      setRows(withIds(blocks));
+    }
+  }, [blocks]);
+
+  function commit(next: WithId[]) {
+    setRows(next);
+    const stripped = stripIds(next);
+    lastJsonRef.current = JSON.stringify(stripped);
+    onChange(stripped);
   }
 
-  function move(index: number, direction: "up" | "down") {
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= blocks.length) return;
-    const copy = blocks.slice();
-    [copy[index], copy[target]] = [copy[target], copy[index]];
-    onChange(copy);
+  function update(id: string, next: PageBlock) {
+    commit(rows.map((r) => (r.__id === id ? ({ ...next, __id: id } as WithId) : r)));
   }
 
-  function remove(index: number) {
+  function remove(id: string) {
     if (!confirm("Remove this block?")) return;
-    onChange(blocks.filter((_, i) => i !== index));
+    commit(rows.filter((r) => r.__id !== id));
   }
 
-  function add(block: PageBlock) {
-    onChange([...blocks, block]);
+  function duplicate(id: string) {
+    const i = rows.findIndex((r) => r.__id === id);
+    if (i === -1) return;
+    const source = rows[i];
+    const clone = {
+      ...(structuredClone({ ...source, __id: undefined }) as PageBlock),
+      __id: nextId(),
+    } as WithId;
+    const next = [...rows.slice(0, i + 1), clone, ...rows.slice(i + 1)];
+    commit(next);
+    setScrollToId(clone.__id);
+  }
+
+  function insertAt(index: number, block: PageBlock) {
+    const row = { ...block, __id: nextId() } as WithId;
+    const next = [...rows.slice(0, index), row, ...rows.slice(index)];
+    commit(next);
+    setScrollToId(row.__id);
+  }
+
+  function appendBlock(block: PageBlock) {
+    insertAt(rows.length, block);
+  }
+
+  function toggleCollapsed(id: string) {
+    setCollapsed((c) => ({ ...c, [id]: !c[id] }));
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const ids = useMemo(() => rows.map((r) => r.__id), [rows]);
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const fromIndex = ids.indexOf(String(active.id));
+    const toIndex = ids.indexOf(String(over.id));
+    if (fromIndex === -1 || toIndex === -1) return;
+    commit(arrayMove(rows, fromIndex, toIndex));
   }
 
   return (
-    <div className="space-y-4">
-      {blocks.length === 0 && (
+    <div className="space-y-2">
+      {rows.length === 0 && (
         <Card>
-          <CardContent className="p-6 text-center text-sm text-muted-foreground">
-            No content blocks yet. Add one below to get started.
+          <CardContent className="p-6 text-center text-sm text-muted-foreground space-y-3">
+            <p>No content blocks yet.</p>
+            <BlockPicker onPick={appendBlock} />
           </CardContent>
         </Card>
       )}
 
-      {blocks.map((block, i) => (
-        <BlockCard
-          key={i}
-          block={block}
-          index={i}
-          isFirst={i === 0}
-          isLast={i === blocks.length - 1}
-          onChange={(next) => update(i, next)}
-          onMoveUp={() => move(i, "up")}
-          onMoveDown={() => move(i, "down")}
-          onRemove={() => remove(i)}
-        />
-      ))}
+      {rows.length > 0 && (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+            <div className="space-y-3">
+              {rows.map((row, i) => (
+                <div key={row.__id}>
+                  <InsertHere onPick={(b) => insertAt(i, b)} />
+                  <SortableBlockCard
+                    id={row.__id}
+                    block={row}
+                    index={i}
+                    collapsed={!!collapsed[row.__id]}
+                    scrollIntoView={scrollToId === row.__id}
+                    onScrolled={() => setScrollToId(null)}
+                    onChange={(next) => update(row.__id, next)}
+                    onRemove={() => remove(row.__id)}
+                    onDuplicate={() => duplicate(row.__id)}
+                    onToggleCollapsed={() => toggleCollapsed(row.__id)}
+                  />
+                </div>
+              ))}
+              <InsertHere onPick={(b) => insertAt(rows.length, b)} />
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
 
-      <div className="flex flex-wrap gap-2 pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createHtmlBlock())}
-        >
-          <Text className="h-4 w-4 mr-2" />
-          Add Text
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createInfoCardsBlock())}
-        >
-          <LayoutGrid className="h-4 w-4 mr-2" />
-          Add Info Cards
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createStatsBlock())}
-        >
-          <BarChart3 className="h-4 w-4 mr-2" />
-          Add Stats
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createChecklistBlock())}
-        >
-          <ListChecks className="h-4 w-4 mr-2" />
-          Add Checklist
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createContactInfoBlock())}
-        >
-          <Contact className="h-4 w-4 mr-2" />
-          Add Contact Info
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createHighlightCardBlock())}
-        >
-          <Star className="h-4 w-4 mr-2" />
-          Add Highlight
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createContactsDirectoryBlock())}
-        >
-          <Phone className="h-4 w-4 mr-2" />
-          Add Phone Directory
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createPhasesBlock())}
-        >
-          <ListOrdered className="h-4 w-4 mr-2" />
-          Add Phases
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createNumberedStepsBlock())}
-        >
-          <RouteIcon className="h-4 w-4 mr-2" />
-          Add Numbered Steps
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createScheduleGridBlock())}
-        >
-          <CalendarClock className="h-4 w-4 mr-2" />
-          Add Schedule Grid
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createDefinitionCardsBlock())}
-        >
-          <Code2 className="h-4 w-4 mr-2" />
-          Add Definition Cards
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createProgramTiersBlock())}
-        >
-          <Trophy className="h-4 w-4 mr-2" />
-          Add Program Tiers
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createLocationsDirectoryBlock())}
-        >
-          <MapPinned className="h-4 w-4 mr-2" />
-          Add Locations
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createFilesListBlock())}
-        >
-          <Folder className="h-4 w-4 mr-2" />
-          Add Files List
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createLinkCollectionsListBlock())}
-        >
-          <LinkIcon className="h-4 w-4 mr-2" />
-          Add Link Collections
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => add(createRosterBlock())}
-        >
-          <Users className="h-4 w-4 mr-2" />
-          Add Roster
-        </Button>
+      {rows.length > 0 && (
+        <div className="pt-2">
+          <BlockPicker onPick={appendBlock} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InsertHere({ onPick }: { onPick: (block: PageBlock) => void }) {
+  return (
+    <div className="group relative h-2">
+      <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex items-center justify-center opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity pointer-events-none">
+        <div className="h-px bg-military-blue/40 flex-1" />
+        <div className="pointer-events-auto px-2">
+          <BlockPicker
+            onPick={onPick}
+            align="center"
+            trigger={
+              <button
+                type="button"
+                className="flex h-5 w-5 items-center justify-center rounded-full bg-military-blue text-white shadow hover:bg-military-blue/90"
+                aria-label="Insert block here"
+                title="Insert block here"
+              >
+                <Plus className="h-3 w-3" />
+              </button>
+            }
+          />
+        </div>
+        <div className="h-px bg-military-blue/40 flex-1" />
       </div>
     </div>
   );
 }
 
-function BlockCard({
+function SortableBlockCard({
+  id,
   block,
   index,
-  isFirst,
-  isLast,
+  collapsed,
+  scrollIntoView,
+  onScrolled,
   onChange,
-  onMoveUp,
-  onMoveDown,
   onRemove,
+  onDuplicate,
+  onToggleCollapsed,
 }: {
+  id: string;
   block: PageBlock;
   index: number;
-  isFirst: boolean;
-  isLast: boolean;
+  collapsed: boolean;
+  scrollIntoView: boolean;
+  onScrolled: () => void;
   onChange: (next: PageBlock) => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
   onRemove: () => void;
+  onDuplicate: () => void;
+  onToggleCollapsed: () => void;
 }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (scrollIntoView && wrapperRef.current) {
+      wrapperRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      onScrolled();
+    }
+  }, [scrollIntoView, onScrolled]);
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Block {index + 1}</span>
-          <Badge variant="outline">{BLOCK_LABELS[block.type]}</Badge>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onMoveUp}
-            disabled={isFirst}
-            title="Move up"
-          >
-            <ChevronUp className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onMoveDown}
-            disabled={isLast}
-            title="Move down"
-          >
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive hover:text-destructive"
-            onClick={onRemove}
-            title="Remove block"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {block.type === "html" && (
-          <HtmlBlockFields block={block} onChange={onChange} />
-        )}
-        {block.type === "roster" && (
-          <RosterBlockFields block={block} onChange={onChange} />
-        )}
-        {block.type === "info-cards" && (
-          <InfoCardsEditor
-            block={block}
-            onChange={(next: InfoCardsBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "stats" && (
-          <StatsEditor
-            block={block}
-            onChange={(next: StatsBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "checklist" && (
-          <ChecklistEditor
-            block={block}
-            onChange={(next: ChecklistBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "contacts-directory" && (
-          <ContactsDirectoryEditor
-            block={block}
-            onChange={(next: ContactsDirectoryBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "contact-info" && (
-          <ContactInfoEditor
-            block={block}
-            onChange={(next: ContactInfoBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "highlight-card" && (
-          <HighlightCardEditor
-            block={block}
-            onChange={(next: HighlightCardBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "phases" && (
-          <PhasesEditor
-            block={block}
-            onChange={(next: PhasesBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "numbered-steps" && (
-          <NumberedStepsEditor
-            block={block}
-            onChange={(next: NumberedStepsBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "schedule-grid" && (
-          <ScheduleGridEditor
-            block={block}
-            onChange={(next: ScheduleGridBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "definition-cards" && (
-          <DefinitionCardsEditor
-            block={block}
-            onChange={(next: DefinitionCardsBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "program-tiers" && (
-          <ProgramTiersEditor
-            block={block}
-            onChange={(next: ProgramTiersBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "locations-directory" && (
-          <LocationsDirectoryEditor
-            block={block}
-            onChange={(next: LocationsDirectoryBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "files-list" && (
-          <FilesListEditor
-            block={block}
-            onChange={(next: FilesListBlock) => onChange(next)}
-          />
-        )}
-        {block.type === "link-collections-list" && (
-          <LinkCollectionsListEditor
-            block={block}
-            onChange={(next: LinkCollectionsListBlock) => onChange(next)}
-          />
-        )}
-      </CardContent>
-    </Card>
+    <div ref={setNodeRef} style={style}>
+      <div ref={wrapperRef}>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <button
+                type="button"
+                ref={setActivatorNodeRef}
+                {...attributes}
+                {...listeners}
+                className="flex h-8 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring touch-none"
+                aria-label="Drag to reorder"
+                title="Drag to reorder"
+              >
+                <GripVertical className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={onToggleCollapsed}
+                className="flex h-8 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-muted"
+                aria-label={collapsed ? "Expand block" : "Collapse block"}
+                title={collapsed ? "Expand" : "Collapse"}
+              >
+                {collapsed ? (
+                  <ChevronRight className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </button>
+              <span className="text-xs text-muted-foreground shrink-0">
+                {index + 1}
+              </span>
+              <Badge variant="outline" className="shrink-0">
+                {BLOCK_TYPE_LABELS[block.type]}
+              </Badge>
+              {collapsed && (
+                <span className="text-xs text-muted-foreground truncate">
+                  {summarizeBlock(block)}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={onDuplicate}
+                title="Duplicate block"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-destructive hover:text-destructive"
+                onClick={onRemove}
+                title="Remove block"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          {!collapsed && (
+            <CardContent>
+              <BlockBody block={block} onChange={onChange} />
+            </CardContent>
+          )}
+        </Card>
+      </div>
+    </div>
   );
+}
+
+function BlockBody({
+  block,
+  onChange,
+}: {
+  block: PageBlock;
+  onChange: (next: PageBlock) => void;
+}) {
+  switch (block.type) {
+    case "html":
+      return <HtmlBlockFields block={block} onChange={onChange} />;
+    case "roster":
+      return <RosterBlockFields block={block} onChange={onChange} />;
+    case "info-cards":
+      return (
+        <InfoCardsEditor
+          block={block}
+          onChange={(next: InfoCardsBlock) => onChange(next)}
+        />
+      );
+    case "stats":
+      return (
+        <StatsEditor
+          block={block}
+          onChange={(next: StatsBlock) => onChange(next)}
+        />
+      );
+    case "checklist":
+      return (
+        <ChecklistEditor
+          block={block}
+          onChange={(next: ChecklistBlock) => onChange(next)}
+        />
+      );
+    case "contacts-directory":
+      return (
+        <ContactsDirectoryEditor
+          block={block}
+          onChange={(next: ContactsDirectoryBlock) => onChange(next)}
+        />
+      );
+    case "contact-info":
+      return (
+        <ContactInfoEditor
+          block={block}
+          onChange={(next: ContactInfoBlock) => onChange(next)}
+        />
+      );
+    case "highlight-card":
+      return (
+        <HighlightCardEditor
+          block={block}
+          onChange={(next: HighlightCardBlock) => onChange(next)}
+        />
+      );
+    case "phases":
+      return (
+        <PhasesEditor
+          block={block}
+          onChange={(next: PhasesBlock) => onChange(next)}
+        />
+      );
+    case "numbered-steps":
+      return (
+        <NumberedStepsEditor
+          block={block}
+          onChange={(next: NumberedStepsBlock) => onChange(next)}
+        />
+      );
+    case "schedule-grid":
+      return (
+        <ScheduleGridEditor
+          block={block}
+          onChange={(next: ScheduleGridBlock) => onChange(next)}
+        />
+      );
+    case "definition-cards":
+      return (
+        <DefinitionCardsEditor
+          block={block}
+          onChange={(next: DefinitionCardsBlock) => onChange(next)}
+        />
+      );
+    case "program-tiers":
+      return (
+        <ProgramTiersEditor
+          block={block}
+          onChange={(next: ProgramTiersBlock) => onChange(next)}
+        />
+      );
+    case "locations-directory":
+      return (
+        <LocationsDirectoryEditor
+          block={block}
+          onChange={(next: LocationsDirectoryBlock) => onChange(next)}
+        />
+      );
+    case "files-list":
+      return (
+        <FilesListEditor
+          block={block}
+          onChange={(next: FilesListBlock) => onChange(next)}
+        />
+      );
+    case "link-collections-list":
+      return (
+        <LinkCollectionsListEditor
+          block={block}
+          onChange={(next: LinkCollectionsListBlock) => onChange(next)}
+        />
+      );
+  }
 }
 
 function HtmlBlockFields({

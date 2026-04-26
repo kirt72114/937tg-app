@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { IconPicker, ColorPicker } from "./icon-color-pickers";
+import { SortableList } from "@/components/admin/sortable-list";
 import type { InfoCardsBlock, InfoCardItem } from "@/lib/content-blocks";
 
 const selectClasses =
@@ -19,14 +20,6 @@ export function InfoCardsEditor({
   function updateCard(index: number, patch: Partial<InfoCardItem>) {
     const next = block.cards.slice();
     next[index] = { ...next[index], ...patch };
-    onChange({ ...block, cards: next });
-  }
-
-  function moveCard(index: number, direction: "up" | "down") {
-    const target = direction === "up" ? index - 1 : index + 1;
-    if (target < 0 || target >= block.cards.length) return;
-    const next = block.cards.slice();
-    [next[index], next[target]] = [next[target], next[index]];
     onChange({ ...block, cards: next });
   }
 
@@ -85,69 +78,54 @@ export function InfoCardsEditor({
         </div>
       </div>
 
-      <div className="space-y-3">
-        {block.cards.map((card, i) => (
-          <div key={i} className="rounded-md border p-4 space-y-3 bg-muted/30">
+      <SortableList
+        items={block.cards}
+        getId={(_, i) => String(i)}
+        onReorder={(next) => onChange({ ...block, cards: next })}
+        className="space-y-3"
+        renderItem={({ item, index, handle }) => (
+          <div className="rounded-md border p-4 space-y-3 bg-muted/30">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
-                Card {i + 1}
-              </span>
-              <div className="flex gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => moveCard(i, "up")}
-                  disabled={i === 0}
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => moveCard(i, "down")}
-                  disabled={i === block.cards.length - 1}
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-destructive hover:text-destructive"
-                  onClick={() => removeCard(i)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center gap-2">
+                {handle}
+                <span className="text-xs font-medium text-muted-foreground">
+                  Card {index + 1}
+                </span>
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive hover:text-destructive"
+                onClick={() => removeCard(index)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <IconPicker
-                value={card.icon}
-                onChange={(icon) => updateCard(i, { icon })}
+                value={item.icon}
+                onChange={(icon) => updateCard(index, { icon })}
               />
               <ColorPicker
-                value={card.color}
-                onChange={(color) => updateCard(i, { color })}
+                value={item.color}
+                onChange={(color) => updateCard(index, { color })}
               />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Title</label>
               <Input
-                value={card.title}
-                onChange={(e) => updateCard(i, { title: e.target.value })}
+                value={item.title}
+                onChange={(e) => updateCard(index, { title: e.target.value })}
                 placeholder="Card title"
               />
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Description</label>
               <textarea
-                value={card.description}
+                value={item.description}
                 onChange={(e) =>
-                  updateCard(i, { description: e.target.value })
+                  updateCard(index, { description: e.target.value })
                 }
                 placeholder="What is this card about?"
                 rows={3}
@@ -159,9 +137,9 @@ export function InfoCardsEditor({
                 Link URL (optional)
               </label>
               <Input
-                value={card.url ?? ""}
+                value={item.url ?? ""}
                 onChange={(e) =>
-                  updateCard(i, { url: e.target.value || undefined })
+                  updateCard(index, { url: e.target.value || undefined })
                 }
                 placeholder="https://example.com or /other-page"
               />
@@ -170,8 +148,8 @@ export function InfoCardsEditor({
               </p>
             </div>
           </div>
-        ))}
-      </div>
+        )}
+      />
 
       <Button type="button" variant="outline" size="sm" onClick={addCard}>
         <Plus className="h-4 w-4 mr-2" />
